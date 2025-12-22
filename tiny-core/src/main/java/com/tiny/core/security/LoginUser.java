@@ -36,6 +36,11 @@ public class LoginUser implements Serializable {
     private Long deptId;
 
     /**
+     * 是否超级管理员
+     */
+    private boolean superAdmin;
+
+    /**
      * 权限标识集合
      */
     private Set<String> permissions;

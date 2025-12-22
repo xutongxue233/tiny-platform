@@ -97,3 +97,6 @@ coverage/
 
 # Claude
 .claude/
+
+# Local config
+**/application-local.yml

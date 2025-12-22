@@ -72,6 +72,36 @@ public class SysMenuVO implements Serializable {
     private String icon;
 
     /**
+     * 是否外链（0否 1是）
+     */
+    private String isFrame;
+
+    /**
+     * 是否缓存（0缓存 1不缓存）
+     */
+    private String isCache;
+
+    /**
+     * 链接地址（外链时使用）
+     */
+    private String link;
+
+    /**
+     * 打开方式（_blank新窗口 _self当前窗口）
+     */
+    private String target;
+
+    /**
+     * 角标文字
+     */
+    private String badge;
+
+    /**
+     * 角标颜色
+     */
+    private String badgeColor;
+
+    /**
      * 备注
      */
     private String remark;

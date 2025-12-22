@@ -24,6 +24,12 @@
             <artifactId>tiny-core</artifactId>
         </dependency>
 
+        <!-- Spring AOP -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
         <!-- Knife4j -->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>

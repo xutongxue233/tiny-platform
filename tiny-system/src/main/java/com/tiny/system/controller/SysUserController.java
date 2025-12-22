@@ -1,7 +1,10 @@
 package com.tiny.system.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import com.tiny.common.annotation.OperationLog;
+import com.tiny.common.annotation.OperationLog.OperationType;
 import com.tiny.common.core.domain.ResponseResult;
+import com.tiny.common.core.model.DeleteDTO;
 import com.tiny.common.core.page.PageResult;
 import com.tiny.system.dto.ResetPasswordDTO;
 import com.tiny.system.dto.SysUserDTO;
@@ -43,13 +46,13 @@ public class SysUserController {
     @Operation(summary = "查询用户详情")
     @SaCheckPermission("system:user:query")
     @GetMapping("/{userId}")
-    public ResponseResult<SysUserVO> getById(
-            @Parameter(description = "用户ID") @PathVariable Long userId) {
+    public ResponseResult<SysUserVO> getById(@Parameter(description = "用户ID") @PathVariable Long userId) {
         SysUserVO user = userService.getDetail(userId);
         return ResponseResult.ok(user);
     }
 
     @Operation(summary = "新增用户")
+    @OperationLog(module = "用户管理", type = OperationType.INSERT, desc = "新增用户")
     @SaCheckPermission("system:user:add")
     @PostMapping
     public ResponseResult<Void> add(@Valid @RequestBody SysUserDTO dto) {
@@ -58,6 +61,7 @@ public class SysUserController {
     }
 
     @Operation(summary = "修改用户")
+    @OperationLog(module = "用户管理", type = OperationType.UPDATE, desc = "修改用户")
     @SaCheckPermission("system:user:edit")
     @PutMapping
     public ResponseResult<Void> update(@Valid @RequestBody SysUserDTO dto) {
@@ -66,23 +70,25 @@ public class SysUserController {
     }
 
     @Operation(summary = "删除用户")
+    @OperationLog(module = "用户管理", type = OperationType.DELETE, desc = "删除用户")
     @SaCheckPermission("system:user:remove")
     @DeleteMapping("/{userId}")
-    public ResponseResult<Void> delete(
-            @Parameter(description = "用户ID") @PathVariable Long userId) {
+    public ResponseResult<Void> delete(@Parameter(description = "用户ID") @PathVariable Long userId) {
         userService.delete(userId);
         return ResponseResult.ok();
     }
 
     @Operation(summary = "批量删除用户")
+    @OperationLog(module = "用户管理", type = OperationType.DELETE, desc = "批量删除用户")
     @SaCheckPermission("system:user:remove")
     @DeleteMapping("/batch")
-    public ResponseResult<Void> deleteBatch(@RequestBody List<Long> userIds) {
-        userService.deleteBatch(userIds);
+    public ResponseResult<Void> deleteBatch(@Valid @RequestBody DeleteDTO dto) {
+        userService.deleteBatch(dto.getIds());
         return ResponseResult.ok();
     }
 
     @Operation(summary = "重置密码")
+    @OperationLog(module = "用户管理", type = OperationType.UPDATE, desc = "重置密码")
     @SaCheckPermission("system:user:resetPwd")
     @PutMapping("/resetPassword")
     public ResponseResult<Void> resetPassword(@Valid @RequestBody ResetPasswordDTO dto) {
@@ -91,6 +97,7 @@ public class SysUserController {
     }
 
     @Operation(summary = "修改用户状态")
+    @OperationLog(module = "用户管理", type = OperationType.UPDATE, desc = "修改用户状态")
     @SaCheckPermission("system:user:edit")
     @PutMapping("/status")
     public ResponseResult<Void> updateStatus(@Valid @RequestBody UpdateStatusDTO dto) {

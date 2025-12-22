@@ -49,15 +49,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 .like(StrUtil.isNotBlank(queryDTO.getPhone()), SysUser::getPhone, queryDTO.getPhone())
                 .eq(StrUtil.isNotBlank(queryDTO.getStatus()), SysUser::getStatus, queryDTO.getStatus())
                 .eq(queryDTO.getDeptId() != null, SysUser::getDeptId, queryDTO.getDeptId())
+                .and(w -> w.isNull(SysUser::getSuperAdmin).or().ne(SysUser::getSuperAdmin, CommonConstants.SUPER_ADMIN))
                 .orderByDesc(SysUser::getCreateTime);
 
         Page<SysUser> result = baseMapper.selectPage(page, wrapper);
-
-        List<SysUserVO> voList = result.getRecords().stream()
-                .map(this::toVO)
-                .collect(Collectors.toList());
-
-        return new PageResult<>(voList, result.getTotal(), result.getCurrent(), result.getSize());
+        return PageResult.of(result, this::toVO);
     }
 
     @Override

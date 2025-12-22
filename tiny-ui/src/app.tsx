@@ -1,23 +1,64 @@
-import { LinkOutlined } from '@ant-design/icons';
-import type { Settings as LayoutSettings } from '@ant-design/pro-components';
+import type { Settings as LayoutSettings, MenuDataItem } from '@ant-design/pro-components';
 import { SettingDrawer } from '@ant-design/pro-components';
 import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
-import { history, Link } from '@umijs/max';
+import { history } from '@umijs/max';
 import React from 'react';
 import {
   AvatarDropdown,
   AvatarName,
   Footer,
-  Question,
   SelectLang,
 } from '@/components';
-import { getCurrentUser, TokenUtil } from '@/services/ant-design-pro/api';
+import { getCurrentUser, getRouters, TokenUtil } from '@/services/ant-design-pro/api';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 import '@ant-design/v5-patch-for-react-19';
+import * as allIcons from '@ant-design/icons';
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
+
+const fixMenuItemIcon = (menus: MenuDataItem[]): MenuDataItem[] => {
+  return menus.map((item) => {
+    const { icon, children, ...rest } = item;
+    let iconElement = icon;
+    if (typeof icon === 'string' && icon) {
+      const iconName = icon.replace(/(Outlined|Filled|TwoTone)$/, '') + 'Outlined';
+      const IconComponent = (allIcons as Record<string, any>)[iconName] || (allIcons as Record<string, any>)[icon];
+      if (IconComponent) {
+        iconElement = React.createElement(IconComponent);
+      }
+    }
+    return {
+      ...rest,
+      icon: iconElement,
+      children: children ? fixMenuItemIcon(children) : undefined,
+    };
+  });
+};
+
+const convertRoutersToMenuData = (routers: API.RouterItem[]): MenuDataItem[] => {
+  return routers.map((router) => {
+    const menuItem: MenuDataItem = {
+      key: router.menuId?.toString(),
+      name: router.name,
+      path: router.path,
+      icon: router.icon,
+      hideInMenu: router.hideInMenu === '1',
+      target: router.isFrame === '1' ? router.target || '_blank' : undefined,
+    };
+
+    if (router.isFrame === '1' && router.link) {
+      menuItem.path = router.link;
+    }
+
+    if (router.children && router.children.length > 0) {
+      menuItem.children = convertRoutersToMenuData(router.children);
+    }
+
+    return menuItem;
+  });
+};
 
 /**
  * @see https://umijs.org/docs/api/runtime-config#getinitialstate
@@ -82,7 +123,6 @@ export const layout: RunTimeLayoutConfig = ({
 }) => {
   return {
     actionsRender: () => [
-      <Question key="doc" />,
       <SelectLang key="SelectLang" />,
     ],
     avatarProps: {
@@ -122,15 +162,31 @@ export const layout: RunTimeLayoutConfig = ({
         width: '331px',
       },
     ],
-    links: isDev
-      ? [
-          <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
-            <LinkOutlined />
-            <span>OpenAPI</span>
-          </Link>,
-        ]
-      : [],
+    links: [],
     menuHeaderRender: undefined,
+    menu: {
+      locale: false,
+      params: {
+        userId: initialState?.currentUser?.userId,
+      },
+      request: async () => {
+        if (!initialState?.currentUser) {
+          return [];
+        }
+        try {
+          const response = await getRouters({
+            skipErrorHandler: true,
+          });
+          if (response.code === 200 && response.data) {
+            const menuData = convertRoutersToMenuData(response.data);
+            return fixMenuItemIcon(menuData);
+          }
+          return [];
+        } catch (_error) {
+          return [];
+        }
+      },
+    },
     childrenRender: (children) => {
       return (
         <>

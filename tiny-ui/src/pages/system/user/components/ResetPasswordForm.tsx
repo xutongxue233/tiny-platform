@@ -63,7 +63,7 @@ const ResetPasswordForm: FC<ResetPasswordFormProps> = (props) => {
         onOpenChange={setOpen}
         width={400}
         modalProps={{
-          destroyOnClose: true,
+          destroyOnHidden: true,
           okButtonProps: { loading },
         }}
         onFinish={handleFinish}

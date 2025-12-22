@@ -1,7 +1,10 @@
 package com.tiny.system.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import com.tiny.common.annotation.OperationLog;
+import com.tiny.common.annotation.OperationLog.OperationType;
 import com.tiny.common.core.domain.ResponseResult;
+import com.tiny.common.core.model.DeleteDTO;
 import com.tiny.common.core.page.PageResult;
 import com.tiny.system.dto.SysRoleDTO;
 import com.tiny.system.dto.SysRoleQueryDTO;
@@ -47,13 +50,13 @@ public class SysRoleController {
     @Operation(summary = "查询角色详情")
     @SaCheckPermission("system:role:query")
     @GetMapping("/{roleId}")
-    public ResponseResult<SysRoleVO> getById(
-            @Parameter(description = "角色ID") @PathVariable Long roleId) {
+    public ResponseResult<SysRoleVO> getById(@Parameter(description = "角色ID") @PathVariable Long roleId) {
         SysRoleVO role = roleService.getDetail(roleId);
         return ResponseResult.ok(role);
     }
 
     @Operation(summary = "新增角色")
+    @OperationLog(module = "角色管理", type = OperationType.INSERT, desc = "新增角色")
     @SaCheckPermission("system:role:add")
     @PostMapping
     public ResponseResult<Void> add(@Valid @RequestBody SysRoleDTO dto) {
@@ -62,6 +65,7 @@ public class SysRoleController {
     }
 
     @Operation(summary = "修改角色")
+    @OperationLog(module = "角色管理", type = OperationType.UPDATE, desc = "修改角色")
     @SaCheckPermission("system:role:edit")
     @PutMapping
     public ResponseResult<Void> update(@Valid @RequestBody SysRoleDTO dto) {
@@ -70,23 +74,25 @@ public class SysRoleController {
     }
 
     @Operation(summary = "删除角色")
+    @OperationLog(module = "角色管理", type = OperationType.DELETE, desc = "删除角色")
     @SaCheckPermission("system:role:remove")
     @DeleteMapping("/{roleId}")
-    public ResponseResult<Void> delete(
-            @Parameter(description = "角色ID") @PathVariable Long roleId) {
+    public ResponseResult<Void> delete(@Parameter(description = "角色ID") @PathVariable Long roleId) {
         roleService.delete(roleId);
         return ResponseResult.ok();
     }
 
     @Operation(summary = "批量删除角色")
+    @OperationLog(module = "角色管理", type = OperationType.DELETE, desc = "批量删除角色")
     @SaCheckPermission("system:role:remove")
     @DeleteMapping("/batch")
-    public ResponseResult<Void> deleteBatch(@RequestBody List<Long> roleIds) {
-        roleService.deleteBatch(roleIds);
+    public ResponseResult<Void> deleteBatch(@Valid @RequestBody DeleteDTO dto) {
+        roleService.deleteBatch(dto.getIds());
         return ResponseResult.ok();
     }
 
     @Operation(summary = "修改角色状态")
+    @OperationLog(module = "角色管理", type = OperationType.UPDATE, desc = "修改角色状态")
     @SaCheckPermission("system:role:edit")
     @PutMapping("/status")
     public ResponseResult<Void> updateStatus(@Valid @RequestBody UpdateStatusDTO dto) {

@@ -8,12 +8,14 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tiny.common.constant.CommonConstants;
 import com.tiny.common.exception.BusinessException;
+import com.tiny.common.utils.WebUtil;
 import com.tiny.core.security.LoginUser;
 import com.tiny.core.utils.LoginUserUtil;
 import com.tiny.system.dto.LoginDTO;
 import com.tiny.system.entity.*;
 import com.tiny.system.mapper.*;
 import com.tiny.system.service.AuthService;
+import com.tiny.system.service.SysLoginLogService;
 import com.tiny.system.vo.LoginVO;
 import com.tiny.system.vo.UserInfoVO;
 import lombok.RequiredArgsConstructor;
@@ -36,25 +38,35 @@ public class AuthServiceImpl implements AuthService {
     private final SysMenuMapper menuMapper;
     private final SysUserRoleMapper userRoleMapper;
     private final SysRoleMenuMapper roleMenuMapper;
+    private final SysLoginLogService loginLogService;
 
     @Override
     public LoginVO login(LoginDTO loginDTO) {
+        String username = loginDTO.getUsername();
+
+        // 在异步调用前获取请求信息
+        String ipAddr = WebUtil.getIpAddr();
+        String userAgent = WebUtil.getUserAgent();
+
         // 查询用户
         SysUser user = userMapper.selectOne(
-                Wrappers.<SysUser>lambdaQuery().eq(SysUser::getUsername, loginDTO.getUsername())
+                Wrappers.<SysUser>lambdaQuery().eq(SysUser::getUsername, username)
         );
 
         if (user == null) {
+            loginLogService.recordLoginLog(username, null, "login", "1", CommonConstants.LOGIN_ERROR, ipAddr, userAgent);
             throw new BusinessException(CommonConstants.LOGIN_ERROR);
         }
 
         // 验证密码
         if (!BCrypt.checkpw(loginDTO.getPassword(), user.getPassword())) {
+            loginLogService.recordLoginLog(username, user.getUserId(), "login", "1", CommonConstants.LOGIN_ERROR, ipAddr, userAgent);
             throw new BusinessException(CommonConstants.LOGIN_ERROR);
         }
 
         // 检查用户状态
         if (CommonConstants.STATUS_DISABLE.equals(user.getStatus())) {
+            loginLogService.recordLoginLog(username, user.getUserId(), "login", "1", "用户已被停用", ipAddr, userAgent);
             throw new BusinessException("用户已被停用");
         }
 
@@ -96,9 +108,13 @@ public class AuthServiceImpl implements AuthService {
 
         // 保存登录用户信息
         LoginUser loginUser = BeanUtil.copyProperties(user, LoginUser.class);
+        loginUser.setSuperAdmin(Integer.valueOf(1).equals(user.getSuperAdmin()));
         loginUser.setRoles(roles);
         loginUser.setPermissions(permissions);
         LoginUserUtil.setLoginUser(loginUser);
+
+        // 记录登录成功日志
+        loginLogService.recordLoginLog(username, user.getUserId(), "login", "0", null, ipAddr, userAgent);
 
         // 构建返回结果
         LoginVO loginVO = new LoginVO();
@@ -114,6 +130,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout() {
+        LoginUser loginUser = LoginUserUtil.getLoginUser();
+        if (loginUser != null) {
+            String ipAddr = WebUtil.getIpAddr();
+            String userAgent = WebUtil.getUserAgent();
+            loginLogService.recordLoginLog(loginUser.getUsername(), loginUser.getUserId(), "logout", "0", null, ipAddr, userAgent);
+        }
         StpUtil.logout();
     }
 

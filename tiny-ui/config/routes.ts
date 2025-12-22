@@ -24,15 +24,12 @@ export default [
   },
   {
     path: '/welcome',
-    name: 'welcome',
-    icon: 'smile',
     component: './Welcome',
+    hideInMenu: true,
   },
   {
     path: '/admin',
-    name: 'admin',
-    icon: 'crown',
-    access: 'canAdmin',
+    hideInMenu: true,
     routes: [
       {
         path: '/admin',
@@ -40,21 +37,18 @@ export default [
       },
       {
         path: '/admin/sub-page',
-        name: 'sub-page',
         component: './Admin',
       },
     ],
   },
   {
-    name: 'list.table-list',
-    icon: 'table',
     path: '/list',
     component: './table-list',
+    hideInMenu: true,
   },
   {
     path: '/system',
-    name: 'system',
-    icon: 'setting',
+    hideInMenu: true,
     routes: [
       {
         path: '/system',
@@ -62,8 +56,33 @@ export default [
       },
       {
         path: '/system/user',
-        name: 'user',
-        component: './system/user',
+        component: './system/user/index',
+      },
+      {
+        path: '/system/role',
+        component: './system/role/index',
+      },
+      {
+        path: '/system/menu',
+        component: './system/menu/index',
+      },
+    ],
+  },
+  {
+    path: '/monitor',
+    hideInMenu: true,
+    routes: [
+      {
+        path: '/monitor',
+        redirect: '/monitor/loginLog',
+      },
+      {
+        path: '/monitor/loginLog',
+        component: './monitor/loginLog/index',
+      },
+      {
+        path: '/monitor/operationLog',
+        component: './monitor/operationLog/index',
       },
     ],
   },
