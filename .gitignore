@@ -62,6 +62,8 @@ build/
 .env.local
 .env.*.local
 *.local
+application-local.yml
+**/application-local.yml
 
 # OS generated files
 .DS_Store
