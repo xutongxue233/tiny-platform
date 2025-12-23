@@ -37,7 +37,7 @@ public class SysRoleController {
     @Operation(summary = "分页查询角色列表")
     @SaCheckPermission("system:role:list")
     @PostMapping("/page")
-    public ResponseResult<PageResult<SysRoleVO>> page(@RequestBody SysRoleQueryDTO queryDTO) {
+    public ResponseResult<PageResult<SysRoleVO>> page(@Valid @RequestBody SysRoleQueryDTO queryDTO) {
         PageResult<SysRoleVO> result = roleService.page(queryDTO);
         return ResponseResult.ok(result);
     }

@@ -30,7 +30,7 @@ public class SysOperationLogController {
     @Operation(summary = "分页查询操作日志")
     @SaCheckPermission("monitor:operationLog:list")
     @PostMapping("/page")
-    public ResponseResult<PageResult<SysOperationLogVO>> page(@RequestBody SysOperationLogQueryDTO queryDTO) {
+    public ResponseResult<PageResult<SysOperationLogVO>> page(@Valid @RequestBody SysOperationLogQueryDTO queryDTO) {
         PageResult<SysOperationLogVO> result = operationLogService.page(queryDTO);
         return ResponseResult.ok(result);
     }

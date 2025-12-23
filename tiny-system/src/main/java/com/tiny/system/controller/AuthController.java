@@ -7,8 +7,8 @@ import com.tiny.system.vo.LoginVO;
 import com.tiny.system.vo.UserInfoVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -24,7 +24,7 @@ public class AuthController {
 
     @Operation(summary = "用户登录", description = "根据用户名和密码进行登录")
     @PostMapping("/login")
-    public ResponseResult<LoginVO> login(@Validated @RequestBody LoginDTO loginDTO) {
+    public ResponseResult<LoginVO> login(@Valid @RequestBody LoginDTO loginDTO) {
         LoginVO loginVO = authService.login(loginDTO);
         return ResponseResult.ok(loginVO);
     }

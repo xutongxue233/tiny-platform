@@ -33,7 +33,7 @@ public class SysDeptController {
     @Operation(summary = "查询部门树形列表")
     @SaCheckPermission("system:dept:list")
     @GetMapping("/tree")
-    public ResponseResult<List<SysDeptVO>> tree(SysDeptQueryDTO queryDTO) {
+    public ResponseResult<List<SysDeptVO>> tree(@Valid SysDeptQueryDTO queryDTO) {
         List<SysDeptVO> tree = deptService.tree(queryDTO);
         return ResponseResult.ok(tree);
     }
@@ -41,7 +41,7 @@ public class SysDeptController {
     @Operation(summary = "查询部门列表（平铺）")
     @SaCheckPermission("system:dept:list")
     @GetMapping("/list")
-    public ResponseResult<List<SysDeptVO>> list(SysDeptQueryDTO queryDTO) {
+    public ResponseResult<List<SysDeptVO>> list(@Valid SysDeptQueryDTO queryDTO) {
         List<SysDeptVO> list = deptService.list(queryDTO);
         return ResponseResult.ok(list);
     }

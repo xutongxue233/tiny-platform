@@ -39,7 +39,7 @@ public class SysMenuController {
     @Operation(summary = "查询菜单列表")
     @SaCheckPermission("system:menu:list")
     @PostMapping("/list")
-    public ResponseResult<List<SysMenuVO>> list(@RequestBody SysMenuQueryDTO queryDTO) {
+    public ResponseResult<List<SysMenuVO>> list(@Valid @RequestBody SysMenuQueryDTO queryDTO) {
         List<SysMenuVO> list = menuService.listAll(queryDTO);
         return ResponseResult.ok(list);
     }
@@ -47,7 +47,7 @@ public class SysMenuController {
     @Operation(summary = "查询菜单树")
     @SaCheckPermission("system:menu:list")
     @PostMapping("/tree")
-    public ResponseResult<List<SysMenuVO>> tree(@RequestBody SysMenuQueryDTO queryDTO) {
+    public ResponseResult<List<SysMenuVO>> tree(@Valid @RequestBody SysMenuQueryDTO queryDTO) {
         List<SysMenuVO> tree = menuService.tree(queryDTO);
         return ResponseResult.ok(tree);
     }

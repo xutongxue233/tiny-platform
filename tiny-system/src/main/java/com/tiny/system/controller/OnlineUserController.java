@@ -9,6 +9,7 @@ import com.tiny.system.vo.OnlineUserVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +27,7 @@ public class OnlineUserController {
     @Operation(summary = "分页查询在线用户")
     @SaCheckPermission("monitor:online:list")
     @PostMapping("/page")
-    public ResponseResult<PageResult<OnlineUserVO>> page(@RequestBody OnlineUserQueryDTO queryDTO) {
+    public ResponseResult<PageResult<OnlineUserVO>> page(@Valid @RequestBody OnlineUserQueryDTO queryDTO) {
         PageResult<OnlineUserVO> result = onlineUserService.page(queryDTO);
         return ResponseResult.ok(result);
     }

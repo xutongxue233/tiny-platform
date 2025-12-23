@@ -38,7 +38,7 @@ public class SysUserController {
     @Operation(summary = "分页查询用户列表")
     @SaCheckPermission("system:user:list")
     @PostMapping("/page")
-    public ResponseResult<PageResult<SysUserVO>> page(@RequestBody SysUserQueryDTO queryDTO) {
+    public ResponseResult<PageResult<SysUserVO>> page(@Valid @RequestBody SysUserQueryDTO queryDTO) {
         PageResult<SysUserVO> result = userService.page(queryDTO);
         return ResponseResult.ok(result);
     }

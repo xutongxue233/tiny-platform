@@ -29,7 +29,7 @@ public class SysLoginLogController {
     @Operation(summary = "分页查询登录日志")
     @SaCheckPermission("monitor:loginLog:list")
     @PostMapping("/page")
-    public ResponseResult<PageResult<SysLoginLogVO>> page(@RequestBody SysLoginLogQueryDTO queryDTO) {
+    public ResponseResult<PageResult<SysLoginLogVO>> page(@Valid @RequestBody SysLoginLogQueryDTO queryDTO) {
         PageResult<SysLoginLogVO> result = loginLogService.page(queryDTO);
         return ResponseResult.ok(result);
     }
