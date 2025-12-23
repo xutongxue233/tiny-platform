@@ -5,7 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tiny.common.constant.CommonConstants;
+import com.tiny.common.enums.StatusEnum;
 import com.tiny.common.exception.BusinessException;
 import com.tiny.core.utils.LoginUserUtil;
 import com.tiny.system.dto.SysMenuDTO;
@@ -40,9 +40,11 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
     @Override
     public List<SysMenuVO> listAll(SysMenuQueryDTO queryDTO) {
         LambdaQueryWrapper<SysMenu> wrapper = Wrappers.lambdaQuery();
-        wrapper.like(StrUtil.isNotBlank(queryDTO.getMenuName()), SysMenu::getMenuName, queryDTO.getMenuName())
-                .eq(StrUtil.isNotBlank(queryDTO.getStatus()), SysMenu::getStatus, queryDTO.getStatus())
-                .orderByAsc(SysMenu::getParentId)
+        if (queryDTO != null) {
+            wrapper.like(StrUtil.isNotBlank(queryDTO.getMenuName()), SysMenu::getMenuName, queryDTO.getMenuName())
+                    .eq(StrUtil.isNotBlank(queryDTO.getStatus()), SysMenu::getStatus, queryDTO.getStatus());
+        }
+        wrapper.orderByAsc(SysMenu::getParentId)
                 .orderByAsc(SysMenu::getSort);
 
         List<SysMenu> menus = this.list(wrapper);
@@ -79,7 +81,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
         menu.setSort(dto.getSort() != null ? dto.getSort() : 0);
         menu.setMenuType(StrUtil.isBlank(dto.getMenuType()) ? "M" : dto.getMenuType());
         menu.setVisible(StrUtil.isBlank(dto.getVisible()) ? "0" : dto.getVisible());
-        menu.setStatus(StrUtil.isBlank(dto.getStatus()) ? CommonConstants.STATUS_NORMAL : dto.getStatus());
+        menu.setStatus(StrUtil.isBlank(dto.getStatus()) ? StatusEnum.NORMAL.getCode() : dto.getStatus());
 
         this.save(menu);
     }
@@ -203,7 +205,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
             // 超级管理员获取所有菜单
             menus = this.list(Wrappers.<SysMenu>lambdaQuery()
                     .in(SysMenu::getMenuType, "M", "C")
-                    .eq(SysMenu::getStatus, CommonConstants.STATUS_NORMAL)
+                    .eq(SysMenu::getStatus, StatusEnum.NORMAL.getCode())
                     .orderByAsc(SysMenu::getParentId)
                     .orderByAsc(SysMenu::getSort));
         } else {

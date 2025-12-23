@@ -111,6 +111,7 @@ declare namespace API {
     avatar?: string;
     status?: string;
     deptId?: number;
+    deptName?: string;
     superAdmin?: number;
     remark?: string;
     createTime?: string;
@@ -240,6 +241,7 @@ declare namespace API {
     remark?: string;
     createTime?: string;
     menuIds?: number[];
+    deptIds?: number[];
   };
 
   /** 角色DTO */
@@ -252,6 +254,43 @@ declare namespace API {
     status?: string;
     remark?: string;
     menuIds?: number[];
+    deptIds?: number[];
+  };
+
+  /** 部门信息 */
+  type SysDept = {
+    deptId?: number;
+    deptName?: string;
+    parentId?: number;
+    parentName?: string;
+    ancestors?: string;
+    sort?: number;
+    leader?: string;
+    phone?: string;
+    email?: string;
+    status?: string;
+    remark?: string;
+    createTime?: string;
+    children?: SysDept[];
+  };
+
+  /** 部门DTO */
+  type SysDeptDTO = {
+    deptId?: number;
+    deptName: string;
+    parentId?: number;
+    sort?: number;
+    leader?: string;
+    phone?: string;
+    email?: string;
+    status?: string;
+    remark?: string;
+  };
+
+  /** 部门查询参数 */
+  type SysDeptQueryParams = {
+    deptName?: string;
+    status?: string;
   };
 
   /** 角色查询参数 */

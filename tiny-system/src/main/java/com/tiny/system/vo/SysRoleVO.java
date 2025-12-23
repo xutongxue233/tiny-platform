@@ -60,4 +60,9 @@ public class SysRoleVO implements Serializable {
      * 菜单ID列表
      */
     private List<Long> menuIds;
+
+    /**
+     * 部门ID列表（自定义数据权限时使用）
+     */
+    private List<Long> deptIds;
 }

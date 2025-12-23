@@ -66,6 +66,10 @@ export default [
         path: '/system/menu',
         component: './system/menu/index',
       },
+      {
+        path: '/system/dept',
+        component: './system/dept/index',
+      },
     ],
   },
   {

@@ -1,6 +1,6 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import { useIntl, useRequest } from '@umijs/max';
+import { useAccess, useIntl, useRequest } from '@umijs/max';
 import { Button, message, Popconfirm, Space, Switch, Tag } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 import { deleteMenu, getMenuTree } from '@/services/ant-design-pro/api';
@@ -13,6 +13,7 @@ const MenuManagement: React.FC = () => {
   const [menuData, setMenuData] = useState<API.SysMenu[]>([]);
 
   const intl = useIntl();
+  const access = useAccess();
   const [messageApi, contextHolder] = message.useMessage();
 
   const { run: delRun, loading: delLoading } = useRequest(deleteMenu, {
@@ -166,13 +167,15 @@ const MenuManagement: React.FC = () => {
       valueType: 'option',
       width: 200,
       render: (_, record) => [
-        <MenuForm
-          key="edit"
-          trigger={<a>{intl.formatMessage({ id: 'pages.menu.edit', defaultMessage: '编辑' })}</a>}
-          values={record}
-          onOk={() => actionRef.current?.reload?.()}
-        />,
-        record.menuType !== 'F' && (
+        access.hasPermission('system:menu:edit') && (
+          <MenuForm
+            key="edit"
+            trigger={<a>{intl.formatMessage({ id: 'pages.menu.edit', defaultMessage: '编辑' })}</a>}
+            values={record}
+            onOk={() => actionRef.current?.reload?.()}
+          />
+        ),
+        access.hasPermission('system:menu:add') && record.menuType !== 'F' && (
           <MenuForm
             key="addChild"
             trigger={<a>{intl.formatMessage({ id: 'pages.menu.addChild', defaultMessage: '新增' })}</a>}
@@ -181,16 +184,18 @@ const MenuManagement: React.FC = () => {
             onOk={() => actionRef.current?.reload?.()}
           />
         ),
-        <Popconfirm
-          key="delete"
-          title={intl.formatMessage({ id: 'pages.menu.confirmDelete', defaultMessage: '确定删除该菜单吗?' })}
-          onConfirm={() => delRun(record.menuId!)}
-        >
-          <a style={{ color: '#ff4d4f' }}>
-            {intl.formatMessage({ id: 'pages.menu.delete', defaultMessage: '删除' })}
-          </a>
-        </Popconfirm>,
-      ],
+        access.hasPermission('system:menu:remove') && (
+          <Popconfirm
+            key="delete"
+            title={intl.formatMessage({ id: 'pages.menu.confirmDelete', defaultMessage: '确定删除该菜单吗?' })}
+            onConfirm={() => delRun(record.menuId!)}
+          >
+            <a style={{ color: '#ff4d4f' }}>
+              {intl.formatMessage({ id: 'pages.menu.delete', defaultMessage: '删除' })}
+            </a>
+          </Popconfirm>
+        ),
+      ].filter(Boolean),
     },
   ];
 
@@ -211,8 +216,10 @@ const MenuManagement: React.FC = () => {
           <Button key="collapse" onClick={handleCollapseAll}>
             {intl.formatMessage({ id: 'pages.menu.collapseAll', defaultMessage: '折叠全部' })}
           </Button>,
-          <MenuForm key="create" onOk={() => actionRef.current?.reload?.()} />,
-        ]}
+          access.hasPermission('system:menu:add') && (
+            <MenuForm key="create" onOk={() => actionRef.current?.reload?.()} />
+          ),
+        ].filter(Boolean)}
         request={async (params) => {
           const res = await getMenuTree({
             menuName: params.menuName,

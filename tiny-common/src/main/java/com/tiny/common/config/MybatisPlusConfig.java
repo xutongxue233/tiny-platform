@@ -3,13 +3,16 @@ package com.tiny.common.config;
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.InnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import org.apache.ibatis.reflection.MetaObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * MyBatis Plus配置
@@ -17,12 +20,22 @@ import java.time.LocalDateTime;
 @Configuration
 public class MybatisPlusConfig {
 
+    @Autowired(required = false)
+    private List<InnerInterceptor> customInterceptors;
+
     /**
      * MyBatis Plus拦截器配置
      */
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+
+        // 添加自定义拦截器（如数据权限拦截器）
+        if (customInterceptors != null) {
+            for (InnerInterceptor customInterceptor : customInterceptors) {
+                interceptor.addInnerInterceptor(customInterceptor);
+            }
+        }
 
         // 分页插件
         interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));

@@ -6,13 +6,16 @@ import {
   ProFormSelect,
   ProFormText,
   ProFormTextArea,
+  ProFormDependency,
 } from '@ant-design/pro-components';
-import { useIntl, useRequest } from '@umijs/max';
+import { useIntl } from '@umijs/max';
 import { Button, Form, message } from 'antd';
 import type { FC, ReactElement } from 'react';
-import { cloneElement, useCallback, useState } from 'react';
+import { cloneElement, useCallback, useRef, useState } from 'react';
 import { addRole, getRoleDetail, updateRole } from '@/services/ant-design-pro/api';
+import type { ProFormInstance } from '@ant-design/pro-components';
 import MenuTreeSelect from './MenuTreeSelect';
+import DeptTreeSelect from './DeptTreeSelect';
 
 interface RoleFormProps {
   trigger?: ReactElement;
@@ -27,82 +30,69 @@ const RoleForm: FC<RoleFormProps> = (props) => {
   const intl = useIntl();
   const [messageApi, contextHolder] = message.useMessage();
   const [open, setOpen] = useState(false);
-  const [initialValues, setInitialValues] = useState<API.SysRole>({});
-
-  const { run: fetchDetail, loading: detailLoading } = useRequest(
-    async (roleId: number) => {
-      const res = await getRoleDetail(roleId);
-      return res.data;
-    },
-    {
-      manual: true,
-      onSuccess: (data) => {
-        if (data) {
-          setInitialValues({
-            ...data,
-            menuIds: data.menuIds || [],
-          });
-        }
-      },
-    },
-  );
-
-  const { run: addRun, loading: addLoading } = useRequest(addRole, {
-    manual: true,
-    onSuccess: () => {
-      messageApi.success(
-        intl.formatMessage({ id: 'pages.role.addSuccess', defaultMessage: '新增成功' }),
-      );
-      setOpen(false);
-      onOk?.();
-    },
-    onError: () => {
-      messageApi.error(
-        intl.formatMessage({ id: 'pages.role.addFailed', defaultMessage: '新增失败' }),
-      );
-    },
-  });
-
-  const { run: updateRun, loading: updateLoading } = useRequest(updateRole, {
-    manual: true,
-    onSuccess: () => {
-      messageApi.success(
-        intl.formatMessage({ id: 'pages.role.updateSuccess', defaultMessage: '更新成功' }),
-      );
-      setOpen(false);
-      onOk?.();
-    },
-    onError: () => {
-      messageApi.error(
-        intl.formatMessage({ id: 'pages.role.updateFailed', defaultMessage: '更新失败' }),
-      );
-    },
-  });
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const formRef = useRef<ProFormInstance>();
 
   const onOpen = useCallback(async () => {
-    if (isEdit && values?.roleId) {
-      await fetchDetail(values.roleId);
-    } else {
-      setInitialValues({
-        sort: 0,
-        dataScope: '1',
-        status: '0',
-        menuIds: [],
-      });
-    }
     setOpen(true);
-  }, [isEdit, values?.roleId, fetchDetail]);
+    // 延迟设置表单值，确保表单已渲染
+    setTimeout(async () => {
+      if (isEdit && values?.roleId) {
+        try {
+          setDetailLoading(true);
+          const res = await getRoleDetail(values.roleId);
+          if (res.code === 200 && res.data) {
+            formRef.current?.setFieldsValue({
+              ...res.data,
+              menuIds: res.data.menuIds || [],
+              deptIds: res.data.deptIds || [],
+            });
+          }
+        } catch (err) {
+          messageApi.error('获取角色详情失败');
+        } finally {
+          setDetailLoading(false);
+        }
+      } else {
+        formRef.current?.setFieldsValue({
+          sort: 0,
+          dataScope: '1',
+          status: '0',
+          menuIds: [],
+          deptIds: [],
+        });
+      }
+    }, 100);
+  }, [isEdit, values?.roleId, messageApi]);
 
   const handleFinish = useCallback(
     async (formValues: API.SysRoleDTO) => {
-      if (isEdit) {
-        await updateRun({ ...formValues, roleId: values?.roleId });
-      } else {
-        await addRun(formValues);
+      try {
+        setSubmitLoading(true);
+        if (isEdit) {
+          const res = await updateRole({ ...formValues, roleId: values?.roleId });
+          if (res.code === 200) {
+            messageApi.success(intl.formatMessage({ id: 'pages.role.updateSuccess', defaultMessage: '更新成功' }));
+            setOpen(false);
+            onOk?.();
+          }
+        } else {
+          const res = await addRole(formValues);
+          if (res.code === 200) {
+            messageApi.success(intl.formatMessage({ id: 'pages.role.addSuccess', defaultMessage: '新增成功' }));
+            setOpen(false);
+            onOk?.();
+          }
+        }
+      } catch (err) {
+        messageApi.error(isEdit ? '更新失败' : '新增失败');
+      } finally {
+        setSubmitLoading(false);
       }
       return true;
     },
-    [isEdit, values?.roleId, addRun, updateRun],
+    [isEdit, values?.roleId, messageApi, intl, onOk],
   );
 
   const triggerDom = trigger ? (
@@ -118,6 +108,7 @@ const RoleForm: FC<RoleFormProps> = (props) => {
       {contextHolder}
       {triggerDom}
       <ModalForm<API.SysRoleDTO>
+        formRef={formRef}
         title={intl.formatMessage({
           id: isEdit ? 'pages.role.editTitle' : 'pages.role.addTitle',
           defaultMessage: isEdit ? '编辑角色' : '新增角色',
@@ -128,9 +119,8 @@ const RoleForm: FC<RoleFormProps> = (props) => {
         loading={detailLoading}
         modalProps={{
           destroyOnHidden: true,
-          okButtonProps: { loading: addLoading || updateLoading },
+          okButtonProps: { loading: submitLoading },
         }}
-        initialValues={initialValues}
         onFinish={handleFinish}
       >
         <ProFormText
@@ -245,6 +235,21 @@ const RoleForm: FC<RoleFormProps> = (props) => {
         >
           <MenuTreeSelect />
         </Form.Item>
+        <ProFormDependency name={['dataScope']}>
+          {({ dataScope }) => {
+            if (dataScope === '2') {
+              return (
+                <Form.Item
+                  name="deptIds"
+                  label={intl.formatMessage({ id: 'pages.role.dataPermission', defaultMessage: '数据权限' })}
+                >
+                  <DeptTreeSelect />
+                </Form.Item>
+              );
+            }
+            return null;
+          }}
+        </ProFormDependency>
         <ProFormTextArea
           name="remark"
           label={intl.formatMessage({ id: 'pages.role.remark', defaultMessage: '备注' })}

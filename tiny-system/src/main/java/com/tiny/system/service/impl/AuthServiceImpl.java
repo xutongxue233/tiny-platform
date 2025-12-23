@@ -7,6 +7,9 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tiny.common.constant.CommonConstants;
+import com.tiny.common.enums.DataScopeEnum;
+import com.tiny.common.enums.LoginTypeEnum;
+import com.tiny.common.enums.StatusEnum;
 import com.tiny.common.exception.BusinessException;
 import com.tiny.common.utils.WebUtil;
 import com.tiny.core.security.LoginUser;
@@ -38,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final SysMenuMapper menuMapper;
     private final SysUserRoleMapper userRoleMapper;
     private final SysRoleMenuMapper roleMenuMapper;
+    private final SysRoleDeptMapper roleDeptMapper;
     private final SysLoginLogService loginLogService;
 
     @Override
@@ -54,19 +58,19 @@ public class AuthServiceImpl implements AuthService {
         );
 
         if (user == null) {
-            loginLogService.recordLoginLog(username, null, "login", "1", CommonConstants.LOGIN_ERROR, ipAddr, userAgent);
+            loginLogService.recordLoginLog(username, null, LoginTypeEnum.LOGIN.getCode(), StatusEnum.DISABLE.getCode(), CommonConstants.LOGIN_ERROR, ipAddr, userAgent);
             throw new BusinessException(CommonConstants.LOGIN_ERROR);
         }
 
         // 验证密码
         if (!BCrypt.checkpw(loginDTO.getPassword(), user.getPassword())) {
-            loginLogService.recordLoginLog(username, user.getUserId(), "login", "1", CommonConstants.LOGIN_ERROR, ipAddr, userAgent);
+            loginLogService.recordLoginLog(username, user.getUserId(), LoginTypeEnum.LOGIN.getCode(), StatusEnum.DISABLE.getCode(), CommonConstants.LOGIN_ERROR, ipAddr, userAgent);
             throw new BusinessException(CommonConstants.LOGIN_ERROR);
         }
 
         // 检查用户状态
-        if (CommonConstants.STATUS_DISABLE.equals(user.getStatus())) {
-            loginLogService.recordLoginLog(username, user.getUserId(), "login", "1", "用户已被停用", ipAddr, userAgent);
+        if (StatusEnum.DISABLE.getCode().equals(user.getStatus())) {
+            loginLogService.recordLoginLog(username, user.getUserId(), LoginTypeEnum.LOGIN.getCode(), StatusEnum.DISABLE.getCode(), "用户已被停用", ipAddr, userAgent);
             throw new BusinessException("用户已被停用");
         }
 
@@ -76,12 +80,35 @@ public class AuthServiceImpl implements AuthService {
         ).stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
 
         Set<String> roles = new HashSet<>();
+        String dataScope = DataScopeEnum.SELF.getCode();
+        Set<Long> dataScopeDeptIds = new HashSet<>();
+
         if (CollUtil.isNotEmpty(roleIds)) {
-            roles = roleMapper.selectList(
+            List<SysRole> roleList = roleMapper.selectList(
                     Wrappers.<SysRole>lambdaQuery()
                             .in(SysRole::getRoleId, roleIds)
-                            .eq(SysRole::getStatus, CommonConstants.STATUS_NORMAL)
-            ).stream().map(SysRole::getRoleKey).collect(Collectors.toSet());
+                            .eq(SysRole::getStatus, StatusEnum.NORMAL.getCode())
+            );
+
+            roles = roleList.stream().map(SysRole::getRoleKey).collect(Collectors.toSet());
+
+            // 计算最大数据权限范围
+            for (SysRole role : roleList) {
+                String roleDataScope = role.getDataScope();
+                if (StrUtil.isNotBlank(roleDataScope)) {
+                    // 数据权限值越小，权限范围越大
+                    if (roleDataScope.compareTo(dataScope) < 0) {
+                        dataScope = roleDataScope;
+                    }
+                    // 收集自定义数据权限的部门
+                    if (DataScopeEnum.CUSTOM.getCode().equals(roleDataScope)) {
+                        List<SysRoleDept> roleDepts = roleDeptMapper.selectList(
+                                Wrappers.<SysRoleDept>lambdaQuery().eq(SysRoleDept::getRoleId, role.getRoleId())
+                        );
+                        dataScopeDeptIds.addAll(roleDepts.stream().map(SysRoleDept::getDeptId).collect(Collectors.toSet()));
+                    }
+                }
+            }
         }
 
         // 查询用户权限
@@ -95,7 +122,7 @@ public class AuthServiceImpl implements AuthService {
                 permissions = menuMapper.selectList(
                                 Wrappers.<SysMenu>lambdaQuery()
                                         .in(SysMenu::getMenuId, menuIds)
-                                        .eq(SysMenu::getStatus, CommonConstants.STATUS_NORMAL)
+                                        .eq(SysMenu::getStatus, StatusEnum.NORMAL.getCode())
                         ).stream()
                         .map(SysMenu::getPerms)
                         .filter(StrUtil::isNotBlank)
@@ -111,10 +138,13 @@ public class AuthServiceImpl implements AuthService {
         loginUser.setSuperAdmin(Integer.valueOf(1).equals(user.getSuperAdmin()));
         loginUser.setRoles(roles);
         loginUser.setPermissions(permissions);
+        loginUser.setRoleIds(new HashSet<>(roleIds));
+        loginUser.setDataScope(dataScope);
+        loginUser.setDataScopeDeptIds(dataScopeDeptIds);
         LoginUserUtil.setLoginUser(loginUser);
 
         // 记录登录成功日志
-        loginLogService.recordLoginLog(username, user.getUserId(), "login", "0", null, ipAddr, userAgent);
+        loginLogService.recordLoginLog(username, user.getUserId(), LoginTypeEnum.LOGIN.getCode(), StatusEnum.NORMAL.getCode(), null, ipAddr, userAgent);
 
         // 构建返回结果
         LoginVO loginVO = new LoginVO();
@@ -134,7 +164,7 @@ public class AuthServiceImpl implements AuthService {
         if (loginUser != null) {
             String ipAddr = WebUtil.getIpAddr();
             String userAgent = WebUtil.getUserAgent();
-            loginLogService.recordLoginLog(loginUser.getUsername(), loginUser.getUserId(), "logout", "0", null, ipAddr, userAgent);
+            loginLogService.recordLoginLog(loginUser.getUsername(), loginUser.getUserId(), LoginTypeEnum.LOGOUT.getCode(), StatusEnum.NORMAL.getCode(), null, ipAddr, userAgent);
         }
         StpUtil.logout();
     }

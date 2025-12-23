@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -49,4 +50,19 @@ public class LoginUser implements Serializable {
      * 角色标识集合
      */
     private Set<String> roles;
+
+    /**
+     * 角色ID集合
+     */
+    private Set<Long> roleIds;
+
+    /**
+     * 数据范围（多角色时取最大权限范围）
+     */
+    private String dataScope;
+
+    /**
+     * 自定义数据权限的部门ID集合
+     */
+    private Set<Long> dataScopeDeptIds;
 }

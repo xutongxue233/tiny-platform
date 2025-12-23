@@ -54,18 +54,4 @@ public interface SysUserService extends IService<SysUser> {
      */
     void updateStatus(Long userId, String status);
 
-    /**
-     * 检查用户名是否存在
-     */
-    boolean checkUsernameExists(String username, Long excludeUserId);
-
-    /**
-     * 检查手机号是否存在
-     */
-    boolean checkPhoneExists(String phone, Long excludeUserId);
-
-    /**
-     * 检查邮箱是否存在
-     */
-    boolean checkEmailExists(String email, Long excludeUserId);
 }

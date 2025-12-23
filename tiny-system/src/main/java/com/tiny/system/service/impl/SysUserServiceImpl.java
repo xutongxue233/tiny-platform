@@ -8,17 +8,22 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tiny.common.annotation.DataScope;
 import com.tiny.common.constant.CommonConstants;
 import com.tiny.common.core.page.PageResult;
+import com.tiny.common.enums.StatusEnum;
 import com.tiny.common.exception.BusinessException;
 import com.tiny.system.dto.SysUserDTO;
 import com.tiny.system.dto.SysUserQueryDTO;
+import com.tiny.system.entity.SysDept;
 import com.tiny.system.entity.SysRole;
 import com.tiny.system.entity.SysUser;
 import com.tiny.system.entity.SysUserRole;
+import com.tiny.system.mapper.SysDeptMapper;
 import com.tiny.system.mapper.SysRoleMapper;
 import com.tiny.system.mapper.SysUserMapper;
 import com.tiny.system.mapper.SysUserRoleMapper;
+import com.tiny.system.service.SysDeptService;
 import com.tiny.system.service.SysUserService;
 import com.tiny.system.vo.SysUserVO;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +43,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     private final SysRoleMapper roleMapper;
     private final SysUserRoleMapper userRoleMapper;
+    private final SysDeptMapper deptMapper;
 
     @Override
     public PageResult<SysUserVO> page(SysUserQueryDTO queryDTO) {
@@ -85,7 +91,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         SysUser user = BeanUtil.copyProperties(dto, SysUser.class, "password", "status");
         user.setPassword(BCrypt.hashpw(dto.getPassword()));
-        user.setStatus(StrUtil.isBlank(dto.getStatus()) ? CommonConstants.STATUS_NORMAL : dto.getStatus());
+        user.setStatus(StrUtil.isBlank(dto.getStatus()) ? StatusEnum.NORMAL.getCode() : dto.getStatus());
 
         this.save(user);
 
@@ -191,7 +197,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
 
         // 不允许停用超级管理员
-        if (CommonConstants.SUPER_ADMIN.equals(user.getSuperAdmin()) && CommonConstants.STATUS_DISABLE.equals(status)) {
+        if (CommonConstants.SUPER_ADMIN.equals(user.getSuperAdmin()) && StatusEnum.DISABLE.getCode().equals(status)) {
             throw new BusinessException("不允许停用超级管理员");
         }
 
@@ -199,8 +205,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         this.updateById(user);
     }
 
-    @Override
-    public boolean checkUsernameExists(String username, Long excludeUserId) {
+    private boolean checkUsernameExists(String username, Long excludeUserId) {
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysUser::getUsername, username);
         if (excludeUserId != null) {
@@ -209,8 +214,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         return this.count(wrapper) > 0;
     }
 
-    @Override
-    public boolean checkPhoneExists(String phone, Long excludeUserId) {
+    private boolean checkPhoneExists(String phone, Long excludeUserId) {
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysUser::getPhone, phone);
         if (excludeUserId != null) {
@@ -219,8 +223,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         return this.count(wrapper) > 0;
     }
 
-    @Override
-    public boolean checkEmailExists(String email, Long excludeUserId) {
+    private boolean checkEmailExists(String email, Long excludeUserId) {
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysUser::getEmail, email);
         if (excludeUserId != null) {
@@ -246,6 +249,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
      */
     private SysUserVO toVO(SysUser user) {
         SysUserVO vo = user.toVO();
+
+        // 查询部门名称
+        if (user.getDeptId() != null) {
+            SysDept dept = deptMapper.selectById(user.getDeptId());
+            if (dept != null) {
+                vo.setDeptName(dept.getDeptName());
+            }
+        }
+
         // 查询用户角色
         List<Long> roleIds = userRoleMapper.selectList(
                 Wrappers.<SysUserRole>lambdaQuery().eq(SysUserRole::getUserId, user.getUserId())

@@ -89,6 +89,35 @@ CREATE TABLE sys_role_menu (
     UNIQUE KEY uk_role_menu (role_id, menu_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色菜单关联表';
 
+-- 部门表
+CREATE TABLE sys_dept (
+    dept_id BIGINT AUTO_INCREMENT COMMENT '部门ID',
+    dept_name VARCHAR(50) NOT NULL COMMENT '部门名称',
+    parent_id BIGINT DEFAULT 0 COMMENT '父部门ID',
+    ancestors VARCHAR(500) DEFAULT '' COMMENT '祖级列表',
+    sort INT DEFAULT 0 COMMENT '显示顺序',
+    leader VARCHAR(50) COMMENT '负责人',
+    phone VARCHAR(20) COMMENT '联系电话',
+    email VARCHAR(100) COMMENT '邮箱',
+    status CHAR(1) DEFAULT '0' COMMENT '状态（0正常 1停用）',
+    create_by VARCHAR(50) COMMENT '创建人',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_by VARCHAR(50) COMMENT '更新人',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    del_flag CHAR(1) DEFAULT '0' COMMENT '删除标志（0正常 1删除）',
+    remark VARCHAR(500) COMMENT '备注',
+    PRIMARY KEY (dept_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='部门表';
+
+-- 角色部门关联表
+CREATE TABLE sys_role_dept (
+    id BIGINT AUTO_INCREMENT COMMENT '主键ID',
+    role_id BIGINT NOT NULL COMMENT '角色ID',
+    dept_id BIGINT NOT NULL COMMENT '部门ID',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_role_dept (role_id, dept_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色部门关联表';
+
 -- 初始化数据
 -- 初始化超级管理员（密码：123456）
 INSERT INTO sys_user (username, password, real_name, status)
@@ -119,16 +148,32 @@ INSERT INTO sys_menu (menu_name, parent_id, sort, path, component, menu_type, vi
 ('菜单新增', 4, 2, NULL, NULL, 'F', '0', '0', 'system:menu:add', NULL),
 ('菜单修改', 4, 3, NULL, NULL, 'F', '0', '0', 'system:menu:edit', NULL),
 ('菜单删除', 4, 4, NULL, NULL, 'F', '0', '0', 'system:menu:remove', NULL),
+('部门管理', 1, 4, '/system/dept', 'system/dept/index', 'C', '0', '0', 'system:dept:list', 'ApartmentOutlined'),
+('部门查询', 17, 1, NULL, NULL, 'F', '0', '0', 'system:dept:query', NULL),
+('部门新增', 17, 2, NULL, NULL, 'F', '0', '0', 'system:dept:add', NULL),
+('部门修改', 17, 3, NULL, NULL, 'F', '0', '0', 'system:dept:edit', NULL),
+('部门删除', 17, 4, NULL, NULL, 'F', '0', '0', 'system:dept:remove', NULL),
 ('系统监控', 0, 2, '/monitor', NULL, 'M', '0', '0', NULL, 'MonitorOutlined'),
-('登录日志', 17, 1, '/monitor/loginLog', 'monitor/loginLog/index', 'C', '0', '0', 'monitor:loginLog:list', 'LoginOutlined'),
-('操作日志', 17, 2, '/monitor/operationLog', 'monitor/operationLog/index', 'C', '0', '0', 'monitor:operationLog:list', 'FileTextOutlined'),
-('登录日志查询', 18, 1, NULL, NULL, 'F', '0', '0', 'monitor:loginLog:query', NULL),
-('登录日志删除', 18, 2, NULL, NULL, 'F', '0', '0', 'monitor:loginLog:remove', NULL),
-('操作日志查询', 19, 1, NULL, NULL, 'F', '0', '0', 'monitor:operationLog:query', NULL),
-('操作日志删除', 19, 2, NULL, NULL, 'F', '0', '0', 'monitor:operationLog:remove', NULL);
+('登录日志', 22, 1, '/monitor/loginLog', 'monitor/loginLog/index', 'C', '0', '0', 'monitor:loginLog:list', 'LoginOutlined'),
+('操作日志', 22, 2, '/monitor/operationLog', 'monitor/operationLog/index', 'C', '0', '0', 'monitor:operationLog:list', 'FileTextOutlined'),
+('登录日志查询', 23, 1, NULL, NULL, 'F', '0', '0', 'monitor:loginLog:query', NULL),
+('登录日志删除', 23, 2, NULL, NULL, 'F', '0', '0', 'monitor:loginLog:remove', NULL),
+('操作日志查询', 24, 1, NULL, NULL, 'F', '0', '0', 'monitor:operationLog:query', NULL),
+('操作日志删除', 24, 2, NULL, NULL, 'F', '0', '0', 'monitor:operationLog:remove', NULL);
+
+-- 初始化部门数据
+INSERT INTO sys_dept (dept_name, parent_id, ancestors, sort, leader, phone, email, status) VALUES
+('总公司', 0, '0', 0, '管理员', '13800000000', 'admin@company.com', '0'),
+('研发部', 1, '0,1', 1, '', '', '', '0'),
+('市场部', 1, '0,1', 2, '', '', '', '0'),
+('财务部', 1, '0,1', 3, '', '', '', '0'),
+('人事部', 1, '0,1', 4, '', '', '', '0');
 
 -- 关联超级管理员角色
 INSERT INTO sys_user_role (user_id, role_id) VALUES (1, 1);
+
+-- 更新管理员用户的部门
+UPDATE sys_user SET dept_id = 1 WHERE username = 'admin';
 
 -- 关联超级管理员所有菜单权限
 INSERT INTO sys_role_menu (role_id, menu_id)

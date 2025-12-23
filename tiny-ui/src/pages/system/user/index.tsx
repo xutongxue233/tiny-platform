@@ -5,7 +5,7 @@ import {
   ProDescriptions,
   ProTable,
 } from '@ant-design/pro-components';
-import { useIntl, useRequest } from '@umijs/max';
+import { useAccess, useIntl, useRequest } from '@umijs/max';
 import { Button, Drawer, message, Modal, Popconfirm, Switch, Tag } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 import {
@@ -24,6 +24,7 @@ const UserList: React.FC = () => {
   const [selectedRowsState, setSelectedRows] = useState<API.SysUser[]>([]);
 
   const intl = useIntl();
+  const access = useAccess();
   const [messageApi, contextHolder] = message.useMessage();
 
   const { run: delRun, loading: delLoading } = useRequest(deleteUser, {
@@ -128,6 +129,12 @@ const UserList: React.FC = () => {
       dataIndex: 'realName',
     },
     {
+      title: intl.formatMessage({ id: 'pages.user.dept', defaultMessage: '部门' }),
+      dataIndex: 'deptName',
+      hideInSearch: true,
+      render: (_, record) => record.deptName || '-',
+    },
+    {
       title: intl.formatMessage({ id: 'pages.user.phone', defaultMessage: '手机号' }),
       dataIndex: 'phone',
     },
@@ -189,27 +196,33 @@ const UserList: React.FC = () => {
       valueType: 'option',
       width: 180,
       render: (_, record) => [
-        <UserForm
-          key="edit"
-          trigger={<a>{intl.formatMessage({ id: 'pages.user.edit', defaultMessage: '编辑' })}</a>}
-          values={record}
-          onOk={() => actionRef.current?.reload?.()}
-        />,
-        <ResetPasswordForm
-          key="resetPwd"
-          trigger={<a>{intl.formatMessage({ id: 'pages.user.resetPassword', defaultMessage: '重置密码' })}</a>}
-          userId={record.userId!}
-        />,
-        <Popconfirm
-          key="delete"
-          title={intl.formatMessage({ id: 'pages.user.confirmDelete', defaultMessage: '确定删除该用户吗？' })}
-          onConfirm={() => delRun(record.userId!)}
-        >
-          <a style={{ color: '#ff4d4f' }}>
-            {intl.formatMessage({ id: 'pages.user.delete', defaultMessage: '删除' })}
-          </a>
-        </Popconfirm>,
-      ],
+        access.hasPermission('system:user:edit') && (
+          <UserForm
+            key="edit"
+            trigger={<a>{intl.formatMessage({ id: 'pages.user.edit', defaultMessage: '编辑' })}</a>}
+            values={record}
+            onOk={() => actionRef.current?.reload?.()}
+          />
+        ),
+        access.hasPermission('system:user:edit') && (
+          <ResetPasswordForm
+            key="resetPwd"
+            trigger={<a>{intl.formatMessage({ id: 'pages.user.resetPassword', defaultMessage: '重置密码' })}</a>}
+            userId={record.userId!}
+          />
+        ),
+        access.hasPermission('system:user:remove') && (
+          <Popconfirm
+            key="delete"
+            title={intl.formatMessage({ id: 'pages.user.confirmDelete', defaultMessage: '确定删除该用户吗？' })}
+            onConfirm={() => delRun(record.userId!)}
+          >
+            <a style={{ color: '#ff4d4f' }}>
+              {intl.formatMessage({ id: 'pages.user.delete', defaultMessage: '删除' })}
+            </a>
+          </Popconfirm>
+        ),
+      ].filter(Boolean),
     },
   ];
 
@@ -224,8 +237,10 @@ const UserList: React.FC = () => {
           labelWidth: 120,
         }}
         toolBarRender={() => [
-          <UserForm key="create" onOk={() => actionRef.current?.reload?.()} />,
-        ]}
+          access.hasPermission('system:user:add') && (
+            <UserForm key="create" onOk={() => actionRef.current?.reload?.()} />
+          ),
+        ].filter(Boolean)}
         request={async (params) => {
           const res = await getUserPage({
             current: params.current,

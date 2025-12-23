@@ -9,7 +9,9 @@ import com.tiny.common.core.page.PageResult;
 import com.tiny.system.dto.SysRoleDTO;
 import com.tiny.system.dto.SysRoleQueryDTO;
 import com.tiny.system.dto.UpdateStatusDTO;
+import com.tiny.system.service.SysMenuService;
 import com.tiny.system.service.SysRoleService;
+import com.tiny.system.vo.SysMenuVO;
 import com.tiny.system.vo.SysRoleVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,6 +32,7 @@ import java.util.List;
 public class SysRoleController {
 
     private final SysRoleService roleService;
+    private final SysMenuService menuService;
 
     @Operation(summary = "分页查询角色列表")
     @SaCheckPermission("system:role:list")
@@ -45,6 +48,14 @@ public class SysRoleController {
     public ResponseResult<List<SysRoleVO>> list() {
         List<SysRoleVO> list = roleService.listAll();
         return ResponseResult.ok(list);
+    }
+
+    @Operation(summary = "获取菜单树（用于角色权限分配）")
+    @SaCheckPermission(value = {"system:role:add", "system:role:edit"}, mode = cn.dev33.satoken.annotation.SaMode.OR)
+    @GetMapping("/menuTree")
+    public ResponseResult<List<SysMenuVO>> getMenuTree() {
+        List<SysMenuVO> tree = menuService.tree(null);
+        return ResponseResult.ok(tree);
     }
 
     @Operation(summary = "查询角色详情")

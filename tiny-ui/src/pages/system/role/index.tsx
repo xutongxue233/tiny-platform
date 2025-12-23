@@ -5,7 +5,7 @@ import {
   ProDescriptions,
   ProTable,
 } from '@ant-design/pro-components';
-import { useIntl, useRequest } from '@umijs/max';
+import { useAccess, useIntl, useRequest } from '@umijs/max';
 import { Button, Drawer, message, Modal, Popconfirm, Switch, Tag } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 import {
@@ -23,6 +23,7 @@ const RoleManagement: React.FC = () => {
   const [selectedRowsState, setSelectedRows] = useState<API.SysRole[]>([]);
 
   const intl = useIntl();
+  const access = useAccess();
   const [messageApi, contextHolder] = message.useMessage();
 
   const { run: delRun, loading: delLoading } = useRequest(deleteRole, {
@@ -181,22 +182,26 @@ const RoleManagement: React.FC = () => {
       valueType: 'option',
       width: 150,
       render: (_, record) => [
-        <RoleForm
-          key="edit"
-          trigger={<a>{intl.formatMessage({ id: 'pages.role.edit', defaultMessage: '编辑' })}</a>}
-          values={record}
-          onOk={() => actionRef.current?.reload?.()}
-        />,
-        <Popconfirm
-          key="delete"
-          title={intl.formatMessage({ id: 'pages.role.confirmDelete', defaultMessage: '确定删除该角色吗?' })}
-          onConfirm={() => delRun(record.roleId!)}
-        >
-          <a style={{ color: '#ff4d4f' }}>
-            {intl.formatMessage({ id: 'pages.role.delete', defaultMessage: '删除' })}
-          </a>
-        </Popconfirm>,
-      ],
+        access.hasPermission('system:role:edit') && (
+          <RoleForm
+            key="edit"
+            trigger={<a>{intl.formatMessage({ id: 'pages.role.edit', defaultMessage: '编辑' })}</a>}
+            values={record}
+            onOk={() => actionRef.current?.reload?.()}
+          />
+        ),
+        access.hasPermission('system:role:remove') && (
+          <Popconfirm
+            key="delete"
+            title={intl.formatMessage({ id: 'pages.role.confirmDelete', defaultMessage: '确定删除该角色吗?' })}
+            onConfirm={() => delRun(record.roleId!)}
+          >
+            <a style={{ color: '#ff4d4f' }}>
+              {intl.formatMessage({ id: 'pages.role.delete', defaultMessage: '删除' })}
+            </a>
+          </Popconfirm>
+        ),
+      ].filter(Boolean),
     },
   ];
 
@@ -211,8 +216,10 @@ const RoleManagement: React.FC = () => {
           labelWidth: 120,
         }}
         toolBarRender={() => [
-          <RoleForm key="create" onOk={() => actionRef.current?.reload?.()} />,
-        ]}
+          access.hasPermission('system:role:add') && (
+            <RoleForm key="create" onOk={() => actionRef.current?.reload?.()} />
+          ),
+        ].filter(Boolean)}
         request={async (params, sort) => {
           const res = await getRolePage({
             current: params.current,

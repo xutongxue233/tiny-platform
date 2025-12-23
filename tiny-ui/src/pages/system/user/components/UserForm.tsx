@@ -2,14 +2,16 @@ import { PlusOutlined } from '@ant-design/icons';
 import {
   ModalForm,
   ProFormRadio,
+  ProFormSelect,
   ProFormText,
   ProFormTextArea,
+  ProFormTreeSelect,
 } from '@ant-design/pro-components';
 import { useIntl, useRequest } from '@umijs/max';
 import { Button, message } from 'antd';
 import type { FC, ReactElement } from 'react';
 import { cloneElement, useCallback, useState } from 'react';
-import { addUser, updateUser } from '@/services/ant-design-pro/api';
+import { addUser, updateUser, getUserRoles, getDeptTreeSelect } from '@/services/ant-design-pro/api';
 
 interface UserFormProps {
   trigger?: ReactElement;
@@ -80,6 +82,14 @@ const UserForm: FC<UserFormProps> = (props) => {
       {intl.formatMessage({ id: 'pages.user.new', defaultMessage: '新增用户' })}
     </Button>
   );
+
+  const convertToTreeData = (depts: API.SysDept[]): any[] => {
+    return depts.map((dept) => ({
+      title: dept.deptName,
+      value: dept.deptId,
+      children: dept.children ? convertToTreeData(dept.children) : [],
+    }));
+  };
 
   return (
     <>
@@ -165,6 +175,21 @@ const UserForm: FC<UserFormProps> = (props) => {
             defaultMessage: '请输入姓名',
           })}
         />
+        <ProFormTreeSelect
+          name="deptId"
+          label={intl.formatMessage({ id: 'pages.user.dept', defaultMessage: '归属部门' })}
+          fieldProps={{
+            placeholder: intl.formatMessage({ id: 'pages.user.deptPlaceholder', defaultMessage: '请选择部门' }),
+            allowClear: true,
+            treeDefaultExpandAll: true,
+            showSearch: true,
+            treeNodeFilterProp: 'title',
+          }}
+          request={async () => {
+            const res = await getDeptTreeSelect();
+            return convertToTreeData(res.data || []);
+          }}
+        />
         <ProFormText
           name="phone"
           label={intl.formatMessage({ id: 'pages.user.phone', defaultMessage: '手机号' })}
@@ -230,6 +255,25 @@ const UserForm: FC<UserFormProps> = (props) => {
               value: '1',
             },
           ]}
+        />
+        <ProFormSelect
+          name="roleIds"
+          label={intl.formatMessage({ id: 'pages.user.roles', defaultMessage: '角色' })}
+          mode="multiple"
+          placeholder={intl.formatMessage({
+            id: 'pages.user.rolesPlaceholder',
+            defaultMessage: '请选择角色',
+          })}
+          request={async () => {
+            const res = await getUserRoles();
+            if (res.code === 200 && res.data) {
+              return res.data.map((role) => ({
+                label: role.roleName,
+                value: role.roleId,
+              }));
+            }
+            return [];
+          }}
         />
         <ProFormTextArea
           name="remark"

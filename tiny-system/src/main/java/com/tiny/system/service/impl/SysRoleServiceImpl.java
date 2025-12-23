@@ -7,14 +7,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tiny.common.constant.CommonConstants;
 import com.tiny.common.core.page.PageResult;
+import com.tiny.common.enums.StatusEnum;
 import com.tiny.common.exception.BusinessException;
 import com.tiny.system.dto.SysRoleDTO;
 import com.tiny.system.dto.SysRoleQueryDTO;
 import com.tiny.system.entity.SysRole;
+import com.tiny.system.entity.SysRoleDept;
 import com.tiny.system.entity.SysRoleMenu;
 import com.tiny.system.entity.SysUserRole;
+import com.tiny.system.mapper.SysRoleDeptMapper;
 import com.tiny.system.mapper.SysRoleMapper;
 import com.tiny.system.mapper.SysRoleMenuMapper;
 import com.tiny.system.mapper.SysUserRoleMapper;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> implements SysRoleService {
 
     private final SysRoleMenuMapper roleMenuMapper;
+    private final SysRoleDeptMapper roleDeptMapper;
     private final SysUserRoleMapper userRoleMapper;
 
     @Override
@@ -54,7 +57,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     @Override
     public List<SysRoleVO> listAll() {
         List<SysRole> roles = this.list(Wrappers.<SysRole>lambdaQuery()
-                .eq(SysRole::getStatus, CommonConstants.STATUS_NORMAL)
+                .eq(SysRole::getStatus, StatusEnum.NORMAL.getCode())
                 .orderByAsc(SysRole::getSort)
         );
 
@@ -88,13 +91,18 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         SysRole role = BeanUtil.copyProperties(dto, SysRole.class, "sort", "dataScope", "status");
         role.setSort(dto.getSort() != null ? dto.getSort() : 0);
         role.setDataScope(StrUtil.isBlank(dto.getDataScope()) ? "1" : dto.getDataScope());
-        role.setStatus(StrUtil.isBlank(dto.getStatus()) ? CommonConstants.STATUS_NORMAL : dto.getStatus());
+        role.setStatus(StrUtil.isBlank(dto.getStatus()) ? StatusEnum.NORMAL.getCode() : dto.getStatus());
 
         this.save(role);
 
         // 保存角色菜单关联
         if (CollUtil.isNotEmpty(dto.getMenuIds())) {
             saveRoleMenus(role.getRoleId(), dto.getMenuIds());
+        }
+
+        // 保存角色部门关联（自定义数据权限）
+        if (CollUtil.isNotEmpty(dto.getDeptIds())) {
+            saveRoleDepts(role.getRoleId(), dto.getDeptIds());
         }
     }
 
@@ -126,6 +134,13 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (CollUtil.isNotEmpty(dto.getMenuIds())) {
             saveRoleMenus(dto.getRoleId(), dto.getMenuIds());
         }
+
+        // 更新角色部门关联（自定义数据权限）
+        roleDeptMapper.delete(Wrappers.<SysRoleDept>lambdaQuery()
+                .eq(SysRoleDept::getRoleId, dto.getRoleId()));
+        if (CollUtil.isNotEmpty(dto.getDeptIds())) {
+            saveRoleDepts(dto.getRoleId(), dto.getDeptIds());
+        }
     }
 
     @Override
@@ -149,6 +164,10 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         // 删除角色菜单关联
         roleMenuMapper.delete(Wrappers.<SysRoleMenu>lambdaQuery()
                 .eq(SysRoleMenu::getRoleId, roleId));
+
+        // 删除角色部门关联
+        roleDeptMapper.delete(Wrappers.<SysRoleDept>lambdaQuery()
+                .eq(SysRoleDept::getRoleId, roleId));
     }
 
     @Override
@@ -171,6 +190,10 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         // 删除角色菜单关联
         roleMenuMapper.delete(Wrappers.<SysRoleMenu>lambdaQuery()
                 .in(SysRoleMenu::getRoleId, roleIds));
+
+        // 删除角色部门关联
+        roleDeptMapper.delete(Wrappers.<SysRoleDept>lambdaQuery()
+                .in(SysRoleDept::getRoleId, roleIds));
     }
 
     @Override
@@ -221,6 +244,18 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     }
 
     /**
+     * 保存角色部门关联
+     */
+    private void saveRoleDepts(Long roleId, List<Long> deptIds) {
+        for (Long deptId : deptIds) {
+            SysRoleDept roleDept = new SysRoleDept();
+            roleDept.setRoleId(roleId);
+            roleDept.setDeptId(deptId);
+            roleDeptMapper.insert(roleDept);
+        }
+    }
+
+    /**
      * 实体转VO（包含关联数据）
      */
     private SysRoleVO toVO(SysRole role) {
@@ -232,6 +267,13 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         ).stream().map(SysRoleMenu::getMenuId).collect(Collectors.toList());
 
         vo.setMenuIds(menuIds);
+
+        // 查询角色部门
+        List<Long> deptIds = roleDeptMapper.selectList(Wrappers.<SysRoleDept>lambdaQuery()
+                .eq(SysRoleDept::getRoleId, role.getRoleId())
+        ).stream().map(SysRoleDept::getDeptId).collect(Collectors.toList());
+
+        vo.setDeptIds(deptIds);
 
         return vo;
     }

@@ -112,30 +112,4 @@ public class SysUserController {
         return ResponseResult.ok(list);
     }
 
-    @Operation(summary = "检查用户名是否存在")
-    @GetMapping("/checkUsername")
-    public ResponseResult<Boolean> checkUsername(
-            @Parameter(description = "用户名") @RequestParam String username,
-            @Parameter(description = "排除的用户ID") @RequestParam(required = false) Long userId) {
-        boolean exists = userService.checkUsernameExists(username, userId);
-        return ResponseResult.ok(exists);
-    }
-
-    @Operation(summary = "检查手机号是否存在")
-    @GetMapping("/checkPhone")
-    public ResponseResult<Boolean> checkPhone(
-            @Parameter(description = "手机号") @RequestParam String phone,
-            @Parameter(description = "排除的用户ID") @RequestParam(required = false) Long userId) {
-        boolean exists = userService.checkPhoneExists(phone, userId);
-        return ResponseResult.ok(exists);
-    }
-
-    @Operation(summary = "检查邮箱是否存在")
-    @GetMapping("/checkEmail")
-    public ResponseResult<Boolean> checkEmail(
-            @Parameter(description = "邮箱") @RequestParam String email,
-            @Parameter(description = "排除的用户ID") @RequestParam(required = false) Long userId) {
-        boolean exists = userService.checkEmailExists(email, userId);
-        return ResponseResult.ok(exists);
-    }
 }

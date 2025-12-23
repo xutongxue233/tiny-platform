@@ -57,6 +57,11 @@ public class SysUserVO implements Serializable {
     private Long deptId;
 
     /**
+     * 部门名称
+     */
+    private String deptName;
+
+    /**
      * 状态（0正常 1停用）
      */
     private String status;
