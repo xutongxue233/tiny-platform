@@ -97,7 +97,7 @@ const UserList: React.FC = () => {
         return;
       }
       const ids = selectedRows.map((row) => row.userId!);
-      await delBatchRun(ids);
+      await delBatchRun({ ids });
     },
     [delBatchRun, intl, messageApi],
   );
@@ -173,7 +173,6 @@ const UserList: React.FC = () => {
           onChange={(checked) => handleStatusChange(checked, record)}
           checkedChildren={intl.formatMessage({ id: 'pages.user.status.normal', defaultMessage: '正常' })}
           unCheckedChildren={intl.formatMessage({ id: 'pages.user.status.disabled', defaultMessage: '停用' })}
-          disabled={record.superAdmin === 1}
         />
       ),
     },
@@ -201,17 +200,15 @@ const UserList: React.FC = () => {
           trigger={<a>{intl.formatMessage({ id: 'pages.user.resetPassword', defaultMessage: '重置密码' })}</a>}
           userId={record.userId!}
         />,
-        record.superAdmin !== 1 && (
-          <Popconfirm
-            key="delete"
-            title={intl.formatMessage({ id: 'pages.user.confirmDelete', defaultMessage: '确定删除该用户吗？' })}
-            onConfirm={() => delRun(record.userId!)}
-          >
-            <a style={{ color: '#ff4d4f' }}>
-              {intl.formatMessage({ id: 'pages.user.delete', defaultMessage: '删除' })}
-            </a>
-          </Popconfirm>
-        ),
+        <Popconfirm
+          key="delete"
+          title={intl.formatMessage({ id: 'pages.user.confirmDelete', defaultMessage: '确定删除该用户吗？' })}
+          onConfirm={() => delRun(record.userId!)}
+        >
+          <a style={{ color: '#ff4d4f' }}>
+            {intl.formatMessage({ id: 'pages.user.delete', defaultMessage: '删除' })}
+          </a>
+        </Popconfirm>,
       ],
     },
   ];
@@ -249,9 +246,6 @@ const UserList: React.FC = () => {
           onChange: (_, selectedRows) => {
             setSelectedRows(selectedRows);
           },
-          getCheckboxProps: (record) => ({
-            disabled: record.superAdmin === 1,
-          }),
         }}
         pagination={{
           defaultPageSize: 10,

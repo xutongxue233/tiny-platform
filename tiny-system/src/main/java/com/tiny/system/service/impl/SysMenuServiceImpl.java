@@ -7,13 +7,17 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tiny.common.constant.CommonConstants;
 import com.tiny.common.exception.BusinessException;
+import com.tiny.core.utils.LoginUserUtil;
 import com.tiny.system.dto.SysMenuDTO;
 import com.tiny.system.dto.SysMenuQueryDTO;
 import com.tiny.system.entity.SysMenu;
 import com.tiny.system.entity.SysRoleMenu;
+import com.tiny.system.entity.SysUser;
 import com.tiny.system.mapper.SysMenuMapper;
 import com.tiny.system.mapper.SysRoleMenuMapper;
+import com.tiny.system.mapper.SysUserMapper;
 import com.tiny.system.service.SysMenuService;
+import com.tiny.system.vo.RouterVO;
 import com.tiny.system.vo.SysMenuVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,6 +35,7 @@ import java.util.stream.Collectors;
 public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> implements SysMenuService {
 
     private final SysRoleMenuMapper roleMenuMapper;
+    private final SysUserMapper userMapper;
 
     @Override
     public List<SysMenuVO> listAll(SysMenuQueryDTO queryDTO) {
@@ -185,5 +190,72 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
      */
     private SysMenuVO toVO(SysMenu menu) {
         return menu.toVO();
+    }
+
+    @Override
+    public List<RouterVO> getUserRouters() {
+        Long userId = LoginUserUtil.getUserId();
+        List<SysMenu> menus;
+
+        // 检查是否为超级管理员
+        SysUser user = userMapper.selectById(userId);
+        if (user != null && Integer.valueOf(1).equals(user.getSuperAdmin())) {
+            // 超级管理员获取所有菜单
+            menus = this.list(Wrappers.<SysMenu>lambdaQuery()
+                    .in(SysMenu::getMenuType, "M", "C")
+                    .eq(SysMenu::getStatus, CommonConstants.STATUS_NORMAL)
+                    .orderByAsc(SysMenu::getParentId)
+                    .orderByAsc(SysMenu::getSort));
+        } else {
+            // 普通用户根据角色权限获取菜单
+            menus = baseMapper.selectMenusByUserId(userId);
+        }
+
+        // 转换为RouterVO
+        List<RouterVO> routerList = menus.stream()
+                .map(menu -> menuToRouter(menu, menu.getParentId()))
+                .collect(Collectors.toList());
+
+        return buildRouterTree(routerList, 0L);
+    }
+
+    /**
+     * 菜单实体转路由VO
+     */
+    private RouterVO menuToRouter(SysMenu menu, Long parentId) {
+        RouterVO router = new RouterVO();
+        router.setMenuId(menu.getMenuId());
+        router.setParentId(parentId);
+        router.setName(menu.getMenuName());
+        router.setPath(menu.getPath());
+        router.setComponent(menu.getComponent());
+        router.setIcon(menu.getIcon());
+        router.setIsFrame(menu.getIsFrame());
+        router.setIsCache(menu.getIsCache());
+        router.setLink(menu.getLink());
+        router.setTarget(menu.getTarget());
+        router.setHideInMenu(menu.getVisible());
+        router.setBadge(menu.getBadge());
+        router.setBadgeColor(menu.getBadgeColor());
+        router.setSort(menu.getSort());
+        router.setPerms(menu.getPerms());
+        return router;
+    }
+
+    /**
+     * 构建路由树
+     */
+    private List<RouterVO> buildRouterTree(List<RouterVO> routers, Long parentId) {
+        List<RouterVO> tree = new ArrayList<>();
+        for (RouterVO router : routers) {
+            if (parentId.equals(router.getParentId())) {
+                List<RouterVO> children = buildRouterTree(routers, router.getMenuId());
+                if (!children.isEmpty()) {
+                    router.setChildren(children);
+                }
+                tree.add(router);
+            }
+        }
+        return tree;
     }
 }

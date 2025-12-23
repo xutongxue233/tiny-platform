@@ -94,7 +94,7 @@ const UserForm: FC<UserFormProps> = (props) => {
         onOpenChange={setOpen}
         width={520}
         modalProps={{
-          destroyOnClose: true,
+          destroyOnHidden: true,
           okButtonProps: { loading: addLoading || updateLoading },
         }}
         initialValues={{

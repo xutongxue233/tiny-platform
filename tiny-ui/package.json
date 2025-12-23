@@ -16,7 +16,6 @@
     "jest": "jest",
     "lint": "npm run biome:lint && npm run tsc",
     "lint-staged": "lint-staged",
-    "openapi": "max openapi",
     "prepare": "husky",
     "preview": "npm run build && max preview --port 8000",
     "record": "cross-env NODE_ENV=development REACT_APP_ENV=test max record --scene=login",

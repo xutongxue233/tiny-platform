@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tiny.system.dto.SysMenuDTO;
 import com.tiny.system.dto.SysMenuQueryDTO;
 import com.tiny.system.entity.SysMenu;
+import com.tiny.system.vo.RouterVO;
 import com.tiny.system.vo.SysMenuVO;
 
 import java.util.List;
@@ -42,4 +43,9 @@ public interface SysMenuService extends IService<SysMenu> {
      * 删除菜单
      */
     void delete(Long menuId);
+
+    /**
+     * 获取当前用户的路由菜单树
+     */
+    List<RouterVO> getUserRouters();
 }

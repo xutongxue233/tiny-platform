@@ -48,12 +48,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
                 .orderByAsc(SysRole::getSort);
 
         Page<SysRole> result = baseMapper.selectPage(page, wrapper);
-
-        List<SysRoleVO> voList = result.getRecords().stream()
-                .map(this::toVO)
-                .collect(Collectors.toList());
-
-        return new PageResult<>(voList, result.getTotal(), result.getCurrent(), result.getSize());
+        return PageResult.of(result, this::toVO);
     }
 
     @Override
@@ -111,11 +106,6 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
             throw new BusinessException("角色不存在");
         }
 
-        // 不允许修改admin角色的角色标识
-        if ("admin".equals(role.getRoleKey()) && !"admin".equals(dto.getRoleKey())) {
-            throw new BusinessException("不允许修改超级管理员角色标识");
-        }
-
         // 检查角色名称是否已存在
         if (checkRoleNameExists(dto.getRoleName(), dto.getRoleId())) {
             throw new BusinessException("角色名称已存在");
@@ -146,11 +136,6 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
             throw new BusinessException("角色不存在");
         }
 
-        // 不允许删除admin角色
-        if ("admin".equals(role.getRoleKey())) {
-            throw new BusinessException("不允许删除超级管理员角色");
-        }
-
         // 检查角色是否已分配给用户
         Long userCount = userRoleMapper.selectCount(Wrappers.<SysUserRole>lambdaQuery()
                 .eq(SysUserRole::getRoleId, roleId)
@@ -173,14 +158,6 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
             return;
         }
 
-        // 检查是否包含admin角色
-        List<SysRole> roles = this.listByIds(roleIds);
-        for (SysRole role : roles) {
-            if ("admin".equals(role.getRoleKey())) {
-                throw new BusinessException("不允许删除超级管理员角色");
-            }
-        }
-
         // 检查角色是否已分配给用户
         Long userCount = userRoleMapper.selectCount(Wrappers.<SysUserRole>lambdaQuery()
                 .in(SysUserRole::getRoleId, roleIds)
@@ -201,11 +178,6 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         SysRole role = this.getById(roleId);
         if (role == null) {
             throw new BusinessException("角色不存在");
-        }
-
-        // 不允许停用admin角色
-        if ("admin".equals(role.getRoleKey()) && CommonConstants.STATUS_DISABLE.equals(status)) {
-            throw new BusinessException("不允许停用超级管理员角色");
         }
 
         role.setStatus(status);

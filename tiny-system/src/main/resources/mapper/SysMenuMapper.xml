@@ -6,11 +6,30 @@
     <select id="selectMenusByUserId" resultType="com.tiny.system.entity.SysMenu">
         SELECT DISTINCT m.menu_id, m.menu_name, m.parent_id, m.sort, m.path, m.component,
                m.menu_type, m.visible, m.status, m.perms, m.icon,
+               m.is_frame, m.is_cache, m.link, m.target, m.badge, m.badge_color,
                m.create_by, m.create_time, m.update_by, m.update_time, m.del_flag, m.remark
         FROM sys_user_role ur
         INNER JOIN sys_role_menu rm ON ur.role_id = rm.role_id
         INNER JOIN sys_menu m ON rm.menu_id = m.menu_id
         WHERE ur.user_id = #{userId}
+          AND m.menu_type IN ('M', 'C')
+          AND m.status = '0'
+          AND m.del_flag = '0'
+        ORDER BY m.parent_id, m.sort
+    </select>
+
+    <!-- 根据角色ID列表查询菜单列表 -->
+    <select id="selectMenusByRoleIds" resultType="com.tiny.system.entity.SysMenu">
+        SELECT DISTINCT m.menu_id, m.menu_name, m.parent_id, m.sort, m.path, m.component,
+               m.menu_type, m.visible, m.status, m.perms, m.icon,
+               m.is_frame, m.is_cache, m.link, m.target, m.badge, m.badge_color,
+               m.create_by, m.create_time, m.update_by, m.update_time, m.del_flag, m.remark
+        FROM sys_role_menu rm
+        INNER JOIN sys_menu m ON rm.menu_id = m.menu_id
+        WHERE rm.role_id IN
+        <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
           AND m.menu_type IN ('M', 'C')
           AND m.status = '0'
           AND m.del_flag = '0'

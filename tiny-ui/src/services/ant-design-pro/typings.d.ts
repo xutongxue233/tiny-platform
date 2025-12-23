@@ -160,4 +160,174 @@ declare namespace API {
     id: number;
     status: string;
   };
+
+  type RouterItem = {
+    menuId: number;
+    parentId: number;
+    name: string;
+    path: string;
+    component?: string;
+    icon?: string;
+    isFrame?: string;
+    isCache?: string;
+    link?: string;
+    target?: string;
+    hideInMenu?: string;
+    badge?: string;
+    badgeColor?: string;
+    sort?: number;
+    perms?: string;
+    children?: RouterItem[];
+  };
+
+  type SysMenu = {
+    menuId?: number;
+    menuName?: string;
+    parentId?: number;
+    sort?: number;
+    path?: string;
+    component?: string;
+    menuType?: string;
+    visible?: string;
+    status?: string;
+    perms?: string;
+    icon?: string;
+    isFrame?: string;
+    isCache?: string;
+    link?: string;
+    target?: string;
+    badge?: string;
+    badgeColor?: string;
+    remark?: string;
+    createTime?: string;
+    children?: SysMenu[];
+  };
+
+  type SysMenuDTO = {
+    menuId?: number;
+    menuName: string;
+    parentId?: number;
+    sort?: number;
+    path?: string;
+    component?: string;
+    menuType?: string;
+    visible?: string;
+    status?: string;
+    perms?: string;
+    icon?: string;
+    isFrame?: string;
+    isCache?: string;
+    link?: string;
+    target?: string;
+    badge?: string;
+    badgeColor?: string;
+    remark?: string;
+  };
+
+  type SysMenuQueryParams = {
+    menuName?: string;
+    status?: string;
+  };
+
+  /** 角色信息 */
+  type SysRole = {
+    roleId?: number;
+    roleName?: string;
+    roleKey?: string;
+    sort?: number;
+    dataScope?: string;
+    status?: string;
+    remark?: string;
+    createTime?: string;
+    menuIds?: number[];
+  };
+
+  /** 角色DTO */
+  type SysRoleDTO = {
+    roleId?: number;
+    roleName: string;
+    roleKey: string;
+    sort?: number;
+    dataScope?: string;
+    status?: string;
+    remark?: string;
+    menuIds?: number[];
+  };
+
+  /** 角色查询参数 */
+  type SysRoleQueryParams = {
+    current?: number;
+    size?: number;
+    roleName?: string;
+    roleKey?: string;
+    status?: string;
+  };
+
+  /** 通用删除DTO */
+  type DeleteDTO = {
+    ids: number[];
+  };
+
+  /** 登录日志 */
+  type SysLoginLog = {
+    loginLogId?: number;
+    userId?: number;
+    username?: string;
+    loginType?: string;
+    ipAddr?: string;
+    loginLocation?: string;
+    browser?: string;
+    os?: string;
+    userAgent?: string;
+    status?: string;
+    errorMsg?: string;
+    loginTime?: string;
+  };
+
+  /** 登录日志查询参数 */
+  type SysLoginLogQueryParams = {
+    current?: number;
+    size?: number;
+    username?: string;
+    ipAddr?: string;
+    loginType?: string;
+    status?: string;
+    beginTime?: string;
+    endTime?: string;
+  };
+
+  /** 操作日志 */
+  type SysOperationLog = {
+    operationLogId?: number;
+    userId?: number;
+    username?: string;
+    moduleName?: string;
+    operationType?: string;
+    operationDesc?: string;
+    requestMethod?: string;
+    requestUrl?: string;
+    methodName?: string;
+    requestParam?: string;
+    responseResult?: string;
+    status?: string;
+    errorMsg?: string;
+    ipAddr?: string;
+    operationLocation?: string;
+    browser?: string;
+    os?: string;
+    executionTime?: number;
+    operationTime?: string;
+  };
+
+  /** 操作日志查询参数 */
+  type SysOperationLogQueryParams = {
+    current?: number;
+    size?: number;
+    username?: string;
+    moduleName?: string;
+    operationType?: string;
+    status?: string;
+    beginTime?: string;
+    endTime?: string;
+  };
 }
