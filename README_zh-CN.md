@@ -1,0 +1,247 @@
+<h1 align="center">Tiny Platform</h1>
+
+<p align="center">
+  <strong>模块化中后台管理系统</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/xutongxue233/tiny-platform/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
+  </a>
+  <a href="https://www.oracle.com/java/technologies/downloads/#java21">
+    <img src="https://img.shields.io/badge/JDK-21-green.svg" alt="JDK Version">
+  </a>
+  <a href="https://spring.io/projects/spring-boot">
+    <img src="https://img.shields.io/badge/Spring%20Boot-3.2.0-brightgreen.svg" alt="Spring Boot">
+  </a>
+  <a href="https://react.dev/">
+    <img src="https://img.shields.io/badge/React-19-blue.svg" alt="React">
+  </a>
+  <a href="https://ant.design/">
+    <img src="https://img.shields.io/badge/Ant%20Design-5-blue.svg" alt="Ant Design">
+  </a>
+</p>
+
+<p align="center">
+  简体中文 | <a href="./README.md">English</a>
+</p>
+
+---
+
+## 项目介绍
+
+Tiny Platform 是一个基于 **Spring Boot 3 + MyBatis Plus + Sa-Token + React + Ant Design Pro** 构建的模块化中后台管理系统。采用多模块设计，便于后期维护和功能扩展。
+
+## Star 趋势
+
+<a href="https://star-history.com/#xutongxue233/tiny-platform&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=xutongxue233/tiny-platform&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=xutongxue233/tiny-platform&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=xutongxue233/tiny-platform&type=Date" />
+ </picture>
+</a>
+
+## 技术栈
+
+### 后端
+| 技术 | 版本 | 说明 |
+|-----|------|-----|
+| Spring Boot | 3.2.0 | 核心框架 |
+| JDK | 21 | Java 版本 |
+| MyBatis Plus | 3.5.15 | ORM 框架 |
+| Sa-Token | 1.37.0 | 权限认证框架 |
+| MySQL | 8.0 | 数据库 |
+| Redis | 6.0+ | 缓存与会话 |
+| Knife4j | 4.4.0 | API 文档 |
+| Hutool | 5.8.23 | 工具库 |
+| Druid | 1.2.27 | 数据库连接池 |
+
+### 前端
+| 技术 | 版本 | 说明 |
+|-----|------|-----|
+| React | 19 | UI 框架 |
+| Ant Design | 5 | UI 组件库 |
+| Ant Design Pro | - | 企业级 UI 解决方案 |
+| UmiJS Max | - | React 应用框架 |
+| TypeScript | - | 类型安全的 JavaScript |
+| TailwindCSS | - | CSS 框架 |
+
+## 功能特性
+
+### 认证授权
+- 基于 Sa-Token 的 Token 认证
+- Token 有效期 24 小时
+- 支持同一账号多地登录
+- 基于 RBAC 的权限控制
+- 注解式权限校验
+
+### 系统管理
+- 用户管理（增删改查、状态管理、密码重置）
+- 角色管理（角色分配、权限配置）
+- 菜单管理（树形结构、路由配置、按钮权限）
+- 部门管理（树形结构、数据权限）
+
+### 日志系统
+- 操作日志（基于 AOP 切面自动记录，支持注解配置）
+- 登录日志（记录登录/登出，IP 归属地解析）
+- 在线用户管理
+
+### 数据功能
+- 逻辑删除
+- 自动填充（创建时间、更新时间）
+- 分页查询
+- 数据权限控制
+
+## 项目结构
+
+```
+tiny-platform/
+├── tiny-common/          # 公共模块
+│   ├── core/             # 核心类（BaseEntity、ResponseResult）
+│   ├── constant/         # 常量定义
+│   ├── exception/        # 异常处理
+│   └── config/           # 通用配置（MyBatis Plus 等）
+├── tiny-core/            # 核心模块
+│   ├── security/         # 登录用户信息
+│   ├── config/           # Sa-Token、Redis 配置
+│   └── utils/            # 工具类
+├── tiny-system/          # 系统管理模块
+│   ├── entity/           # 实体类（用户、角色、菜单等）
+│   ├── mapper/           # 数据访问层
+│   ├── service/          # 业务逻辑层
+│   ├── controller/       # 控制器层
+│   ├── dto/              # 数据传输对象
+│   └── vo/               # 视图对象
+├── tiny-admin/           # 主启动模块
+│   ├── TinyAdminApplication
+│   └── application.yml
+├── tiny-ui/              # 前端项目
+│   ├── src/              # 源代码
+│   ├── config/           # 配置文件
+│   └── mock/             # Mock 数据
+└── docs/                 # 文档
+    └── init.sql          # 数据库初始化脚本
+```
+
+## 快速开始
+
+### 环境要求
+- JDK 21+
+- Maven 3.8+
+- MySQL 8.0+
+- Redis 6.0+
+- Node.js 20+
+
+### 后端启动
+
+1. 创建数据库并执行初始化脚本
+```bash
+mysql -u root -p < docs/init.sql
+```
+
+2. 修改配置文件 `tiny-admin/src/main/resources/application.yml`
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/tiny_admin
+    username: your_username
+    password: your_password
+  data:
+    redis:
+      host: localhost
+      port: 6379
+```
+
+3. 编译打包
+```bash
+mvn clean install
+```
+
+4. 启动应用
+```bash
+cd tiny-admin
+mvn spring-boot:run
+```
+
+- 后端访问地址：http://localhost:8081
+- API 文档地址：http://localhost:8081/doc.html
+
+### 前端启动
+
+1. 进入前端目录
+```bash
+cd tiny-ui
+```
+
+2. 安装依赖
+```bash
+npm install
+```
+
+3. 启动开发服务器
+```bash
+npm run dev
+```
+
+- 前端访问地址：http://localhost:8000
+
+### 默认账号
+- 用户名：`admin`
+- 密码：`admin123`
+
+## API 接口
+
+### 认证相关
+| 方法 | 接口 | 说明 |
+|-----|------|-----|
+| POST | /auth/login | 用户登录 |
+| POST | /auth/logout | 用户登出 |
+| GET | /auth/getUserInfo | 获取当前用户信息 |
+
+### 系统管理
+| 方法 | 接口 | 说明 |
+|-----|------|-----|
+| GET | /sys/user/page | 用户分页查询 |
+| GET | /sys/role/page | 角色分页查询 |
+| GET | /sys/menu/tree | 菜单树 |
+| GET | /sys/dept/tree | 部门树 |
+
+### 日志管理
+| 方法 | 接口 | 说明 |
+|-----|------|-----|
+| GET | /sys/operationLog/page | 操作日志分页查询 |
+| GET | /sys/loginLog/page | 登录日志分页查询 |
+
+## 模块扩展
+
+系统采用模块化设计，后期可以方便地添加新模块：
+
+1. 在父 POM 中添加模块声明
+2. 创建新模块并添加依赖
+3. 实现业务功能
+4. 在 `tiny-admin` 主模块中引入新模块依赖
+
+## 技术特点
+
+1. **模块化设计** - 清晰的模块划分，便于维护和扩展
+2. **技术栈先进** - 使用最新版本的 Spring Boot 3、JDK 21、React 19
+3. **安全优先** - BCrypt 密码加密，Redis Token 存储
+4. **开发友好** - 完善的 API 文档，丰富的工具库
+5. **生产就绪** - 日志系统、监控支持、支持分布式部署
+
+## 后续规划
+
+- [ ] 代码生成器
+- [ ] 定时任务模块
+- [ ] 文件管理模块
+- [ ] 数据字典模块
+- [ ] 工作流引擎
+
+## 参与贡献
+
+欢迎提交 Pull Request 参与贡献！
+
+## 开源许可
+
+本项目基于 MIT 许可证开源，详情请查看 [LICENSE](LICENSE) 文件。

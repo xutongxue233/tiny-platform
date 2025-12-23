@@ -54,4 +54,17 @@ public interface SysUserService extends IService<SysUser> {
      */
     void updateStatus(Long userId, String status);
 
+    /**
+     * 封禁用户
+     *
+     * @param userId      用户ID
+     * @param disableTime 封禁时长（秒），-1表示永久封禁
+     */
+    void disableUser(Long userId, long disableTime);
+
+    /**
+     * 解除封禁
+     */
+    void untieDisable(Long userId);
+
 }

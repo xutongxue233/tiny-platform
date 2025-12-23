@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.tiny.common.core.page.PageResult;
 import com.tiny.common.enums.StatusEnum;
 import com.tiny.common.exception.BusinessException;
@@ -26,7 +27,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -51,7 +54,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
                 .orderByAsc(SysRole::getSort);
 
         Page<SysRole> result = baseMapper.selectPage(page, wrapper);
-        return PageResult.of(result, this::toVO);
+        return PageResult.of(result, SysRole::toVO);
     }
 
     @Override
@@ -62,7 +65,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         );
 
         return roles.stream()
-                .map(this::toVO)
+                .map(SysRole::toVO)
                 .collect(Collectors.toList());
     }
 
@@ -72,7 +75,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (role == null) {
             throw new BusinessException("角色不存在");
         }
-        return toVO(role);
+        return toVOWithRelations(role);
     }
 
     @Override
@@ -114,13 +117,12 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
             throw new BusinessException("角色不存在");
         }
 
-        // 检查角色名称是否已存在
-        if (checkRoleNameExists(dto.getRoleName(), dto.getRoleId())) {
+        // 合并检查角色名称和标识是否存在（优化：2次查询合并为1次）
+        int existResult = checkRoleExists(dto.getRoleName(), dto.getRoleKey(), dto.getRoleId());
+        if (existResult == 1) {
             throw new BusinessException("角色名称已存在");
         }
-
-        // 检查角色标识是否已存在
-        if (checkRoleKeyExists(dto.getRoleKey(), dto.getRoleId())) {
+        if (existResult == 2) {
             throw new BusinessException("角色标识已存在");
         }
 
@@ -128,19 +130,11 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
         this.updateById(role);
 
-        // 更新角色菜单关联
-        roleMenuMapper.delete(Wrappers.<SysRoleMenu>lambdaQuery()
-                .eq(SysRoleMenu::getRoleId, dto.getRoleId()));
-        if (CollUtil.isNotEmpty(dto.getMenuIds())) {
-            saveRoleMenus(dto.getRoleId(), dto.getMenuIds());
-        }
+        // 差异化更新角色菜单关联（优化：只处理变化的数据）
+        updateRoleMenusDiff(dto.getRoleId(), dto.getMenuIds());
 
-        // 更新角色部门关联（自定义数据权限）
-        roleDeptMapper.delete(Wrappers.<SysRoleDept>lambdaQuery()
-                .eq(SysRoleDept::getRoleId, dto.getRoleId()));
-        if (CollUtil.isNotEmpty(dto.getDeptIds())) {
-            saveRoleDepts(dto.getRoleId(), dto.getDeptIds());
-        }
+        // 差异化更新角色部门关联（优化：只处理变化的数据）
+        updateRoleDeptsDiff(dto.getRoleId(), dto.getDeptIds());
     }
 
     @Override
@@ -232,33 +226,147 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     }
 
     /**
-     * 保存角色菜单关联
+     * 批量检查角色名称和标识是否存在（合并查询优化）
+     * @return 0-不存在冲突, 1-角色名称冲突, 2-角色标识冲突
+     */
+    private int checkRoleExists(String roleName, String roleKey, Long excludeRoleId) {
+        LambdaQueryWrapper<SysRole> wrapper = Wrappers.lambdaQuery();
+        wrapper.and(w -> w.eq(SysRole::getRoleName, roleName).or().eq(SysRole::getRoleKey, roleKey));
+        if (excludeRoleId != null) {
+            wrapper.ne(SysRole::getRoleId, excludeRoleId);
+        }
+        List<SysRole> existingRoles = this.list(wrapper);
+        for (SysRole role : existingRoles) {
+            if (roleName.equals(role.getRoleName())) {
+                return 1;
+            }
+            if (roleKey.equals(role.getRoleKey())) {
+                return 2;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * 保存角色菜单关联（批量插入）
      */
     private void saveRoleMenus(Long roleId, List<Long> menuIds) {
-        for (Long menuId : menuIds) {
-            SysRoleMenu roleMenu = new SysRoleMenu();
-            roleMenu.setRoleId(roleId);
-            roleMenu.setMenuId(menuId);
-            roleMenuMapper.insert(roleMenu);
-        }
+        List<SysRoleMenu> roleMenus = menuIds.stream()
+                .map(menuId -> {
+                    SysRoleMenu roleMenu = new SysRoleMenu();
+                    roleMenu.setRoleId(roleId);
+                    roleMenu.setMenuId(menuId);
+                    return roleMenu;
+                })
+                .collect(Collectors.toList());
+        Db.saveBatch(roleMenus);
     }
 
     /**
-     * 保存角色部门关联
+     * 保存角色部门关联（批量插入）
      */
     private void saveRoleDepts(Long roleId, List<Long> deptIds) {
-        for (Long deptId : deptIds) {
-            SysRoleDept roleDept = new SysRoleDept();
-            roleDept.setRoleId(roleId);
-            roleDept.setDeptId(deptId);
-            roleDeptMapper.insert(roleDept);
+        List<SysRoleDept> roleDepts = deptIds.stream()
+                .map(deptId -> {
+                    SysRoleDept roleDept = new SysRoleDept();
+                    roleDept.setRoleId(roleId);
+                    roleDept.setDeptId(deptId);
+                    return roleDept;
+                })
+                .collect(Collectors.toList());
+        Db.saveBatch(roleDepts);
+    }
+
+    /**
+     * 差异化更新角色菜单关联（只删除移除的，只添加新增的）
+     */
+    private void updateRoleMenusDiff(Long roleId, List<Long> newMenuIds) {
+        // 查询当前已有的菜单ID
+        Set<Long> existingMenuIds = roleMenuMapper.selectList(Wrappers.<SysRoleMenu>lambdaQuery()
+                .eq(SysRoleMenu::getRoleId, roleId)
+                .select(SysRoleMenu::getMenuId)
+        ).stream().map(SysRoleMenu::getMenuId).collect(Collectors.toSet());
+
+        // 处理空列表情况
+        if (CollUtil.isEmpty(newMenuIds)) {
+            if (CollUtil.isNotEmpty(existingMenuIds)) {
+                roleMenuMapper.delete(Wrappers.<SysRoleMenu>lambdaQuery().eq(SysRoleMenu::getRoleId, roleId));
+            }
+            return;
+        }
+
+        Set<Long> newMenuIdSet = new HashSet<>(newMenuIds);
+
+        // 计算需要删除的（存在于旧数据但不在新数据中）
+        List<Long> toDelete = existingMenuIds.stream()
+                .filter(id -> !newMenuIdSet.contains(id))
+                .collect(Collectors.toList());
+
+        // 计算需要新增的（存在于新数据但不在旧数据中）
+        List<Long> toAdd = newMenuIds.stream()
+                .filter(id -> !existingMenuIds.contains(id))
+                .collect(Collectors.toList());
+
+        // 批量删除
+        if (CollUtil.isNotEmpty(toDelete)) {
+            roleMenuMapper.delete(Wrappers.<SysRoleMenu>lambdaQuery()
+                    .eq(SysRoleMenu::getRoleId, roleId)
+                    .in(SysRoleMenu::getMenuId, toDelete));
+        }
+
+        // 批量新增
+        if (CollUtil.isNotEmpty(toAdd)) {
+            saveRoleMenus(roleId, toAdd);
         }
     }
 
     /**
-     * 实体转VO（包含关联数据）
+     * 差异化更新角色部门关联（只删除移除的，只添加新增的）
      */
-    private SysRoleVO toVO(SysRole role) {
+    private void updateRoleDeptsDiff(Long roleId, List<Long> newDeptIds) {
+        // 查询当前已有的部门ID
+        Set<Long> existingDeptIds = roleDeptMapper.selectList(Wrappers.<SysRoleDept>lambdaQuery()
+                .eq(SysRoleDept::getRoleId, roleId)
+                .select(SysRoleDept::getDeptId)
+        ).stream().map(SysRoleDept::getDeptId).collect(Collectors.toSet());
+
+        // 处理空列表情况
+        if (CollUtil.isEmpty(newDeptIds)) {
+            if (CollUtil.isNotEmpty(existingDeptIds)) {
+                roleDeptMapper.delete(Wrappers.<SysRoleDept>lambdaQuery().eq(SysRoleDept::getRoleId, roleId));
+            }
+            return;
+        }
+
+        Set<Long> newDeptIdSet = new HashSet<>(newDeptIds);
+
+        // 计算需要删除的
+        List<Long> toDelete = existingDeptIds.stream()
+                .filter(id -> !newDeptIdSet.contains(id))
+                .collect(Collectors.toList());
+
+        // 计算需要新增的
+        List<Long> toAdd = newDeptIds.stream()
+                .filter(id -> !existingDeptIds.contains(id))
+                .collect(Collectors.toList());
+
+        // 批量删除
+        if (CollUtil.isNotEmpty(toDelete)) {
+            roleDeptMapper.delete(Wrappers.<SysRoleDept>lambdaQuery()
+                    .eq(SysRoleDept::getRoleId, roleId)
+                    .in(SysRoleDept::getDeptId, toDelete));
+        }
+
+        // 批量新增
+        if (CollUtil.isNotEmpty(toAdd)) {
+            saveRoleDepts(roleId, toAdd);
+        }
+    }
+
+    /**
+     * 实体转VO（包含关联数据，用于详情查询）
+     */
+    private SysRoleVO toVOWithRelations(SysRole role) {
         SysRoleVO vo = role.toVO();
 
         // 查询角色菜单

@@ -102,7 +102,9 @@ const UserForm: FC<UserFormProps> = (props) => {
         })}
         open={open}
         onOpenChange={setOpen}
-        width={520}
+        width={680}
+        grid
+        rowProps={{ gutter: [16, 0] }}
         modalProps={{
           destroyOnHidden: true,
           okButtonProps: { loading: addLoading || updateLoading },
@@ -121,6 +123,7 @@ const UserForm: FC<UserFormProps> = (props) => {
             id: 'pages.user.usernamePlaceholder',
             defaultMessage: '请输入用户名',
           })}
+          colProps={{ span: 12 }}
           rules={[
             {
               required: true,
@@ -148,6 +151,7 @@ const UserForm: FC<UserFormProps> = (props) => {
               id: 'pages.user.passwordPlaceholder',
               defaultMessage: '请输入密码',
             })}
+            colProps={{ span: 12 }}
             rules={[
               {
                 required: true,
@@ -174,10 +178,12 @@ const UserForm: FC<UserFormProps> = (props) => {
             id: 'pages.user.realNamePlaceholder',
             defaultMessage: '请输入姓名',
           })}
+          colProps={{ span: 12 }}
         />
         <ProFormTreeSelect
           name="deptId"
           label={intl.formatMessage({ id: 'pages.user.dept', defaultMessage: '归属部门' })}
+          colProps={{ span: 12 }}
           fieldProps={{
             placeholder: intl.formatMessage({ id: 'pages.user.deptPlaceholder', defaultMessage: '请选择部门' }),
             allowClear: true,
@@ -197,6 +203,7 @@ const UserForm: FC<UserFormProps> = (props) => {
             id: 'pages.user.phonePlaceholder',
             defaultMessage: '请输入手机号',
           })}
+          colProps={{ span: 12 }}
           rules={[
             {
               pattern: /^1[3-9]\d{9}$/,
@@ -214,6 +221,7 @@ const UserForm: FC<UserFormProps> = (props) => {
             id: 'pages.user.emailPlaceholder',
             defaultMessage: '请输入邮箱',
           })}
+          colProps={{ span: 12 }}
           rules={[
             {
               type: 'email',
@@ -227,6 +235,7 @@ const UserForm: FC<UserFormProps> = (props) => {
         <ProFormRadio.Group
           name="gender"
           label={intl.formatMessage({ id: 'pages.user.gender', defaultMessage: '性别' })}
+          colProps={{ span: 12 }}
           options={[
             {
               label: intl.formatMessage({ id: 'pages.user.gender.male', defaultMessage: '男' }),
@@ -245,6 +254,7 @@ const UserForm: FC<UserFormProps> = (props) => {
         <ProFormRadio.Group
           name="status"
           label={intl.formatMessage({ id: 'pages.user.status', defaultMessage: '状态' })}
+          colProps={{ span: 12 }}
           options={[
             {
               label: intl.formatMessage({ id: 'pages.user.status.normal', defaultMessage: '正常' }),
@@ -260,6 +270,7 @@ const UserForm: FC<UserFormProps> = (props) => {
           name="roleIds"
           label={intl.formatMessage({ id: 'pages.user.roles', defaultMessage: '角色' })}
           mode="multiple"
+          colProps={{ span: 24 }}
           placeholder={intl.formatMessage({
             id: 'pages.user.rolesPlaceholder',
             defaultMessage: '请选择角色',
@@ -278,6 +289,7 @@ const UserForm: FC<UserFormProps> = (props) => {
         <ProFormTextArea
           name="remark"
           label={intl.formatMessage({ id: 'pages.user.remark', defaultMessage: '备注' })}
+          colProps={{ span: 24 }}
           placeholder={intl.formatMessage({
             id: 'pages.user.remarkPlaceholder',
             defaultMessage: '请输入备注',

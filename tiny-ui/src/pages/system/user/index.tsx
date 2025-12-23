@@ -1,12 +1,11 @@
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   FooterToolbar,
   PageContainer,
-  ProDescriptions,
   ProTable,
 } from '@ant-design/pro-components';
 import { useAccess, useIntl, useRequest } from '@umijs/max';
-import { Button, Drawer, message, Modal, Popconfirm, Switch, Tag } from 'antd';
+import { Button, Col, message, Modal, Popconfirm, Row, Switch, Tag } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 import {
   changeUserStatus,
@@ -16,14 +15,19 @@ import {
 } from '@/services/ant-design-pro/api';
 import UserForm from './components/UserForm';
 import ResetPasswordForm from './components/ResetPasswordForm';
+import DeptTree from './components/DeptTree';
 
 const UserList: React.FC = () => {
   const actionRef = useRef<ActionType | null>(null);
-  const [showDetail, setShowDetail] = useState<boolean>(false);
-  const [currentRow, setCurrentRow] = useState<API.SysUser>();
   const [selectedRowsState, setSelectedRows] = useState<API.SysUser[]>([]);
+  const [selectedDeptId, setSelectedDeptId] = useState<number | undefined>();
 
   const intl = useIntl();
+
+  const handleDeptSelect = useCallback((deptId?: number) => {
+    setSelectedDeptId(deptId);
+    actionRef.current?.reloadAndRest?.();
+  }, []);
   const access = useAccess();
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -113,16 +117,6 @@ const UserList: React.FC = () => {
     {
       title: intl.formatMessage({ id: 'pages.user.username', defaultMessage: '用户名' }),
       dataIndex: 'username',
-      render: (dom, entity) => (
-        <a
-          onClick={() => {
-            setCurrentRow(entity);
-            setShowDetail(true);
-          }}
-        >
-          {dom}
-        </a>
-      ),
     },
     {
       title: intl.formatMessage({ id: 'pages.user.realName', defaultMessage: '姓名' }),
@@ -229,45 +223,53 @@ const UserList: React.FC = () => {
   return (
     <PageContainer>
       {contextHolder}
-      <ProTable<API.SysUser, API.SysUserQueryParams>
-        headerTitle={intl.formatMessage({ id: 'pages.user.title', defaultMessage: '用户管理' })}
-        actionRef={actionRef}
-        rowKey="userId"
-        search={{
-          labelWidth: 120,
-        }}
-        toolBarRender={() => [
-          access.hasPermission('system:user:add') && (
-            <UserForm key="create" onOk={() => actionRef.current?.reload?.()} />
-          ),
-        ].filter(Boolean)}
-        request={async (params) => {
-          const res = await getUserPage({
-            current: params.current,
-            size: params.pageSize,
-            username: params.username,
-            realName: params.realName,
-            phone: params.phone,
-            status: params.status,
-          });
-          return {
-            data: res.data?.records || [],
-            total: res.data?.total || 0,
-            success: res.code === 200,
-          };
-        }}
-        columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
-        }}
-        pagination={{
-          defaultPageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-        }}
-      />
+      <Row gutter={16}>
+        <Col span={4}>
+          <DeptTree onSelect={handleDeptSelect} />
+        </Col>
+        <Col span={20}>
+          <ProTable<API.SysUser, API.SysUserQueryParams>
+            headerTitle={intl.formatMessage({ id: 'pages.user.title', defaultMessage: '用户管理' })}
+            actionRef={actionRef}
+            rowKey="userId"
+            search={{
+              labelWidth: 120,
+            }}
+            toolBarRender={() => [
+              access.hasPermission('system:user:add') && (
+                <UserForm key="create" onOk={() => actionRef.current?.reload?.()} />
+              ),
+            ].filter(Boolean)}
+            request={async (params) => {
+              const res = await getUserPage({
+                current: params.current,
+                size: params.pageSize,
+                username: params.username,
+                realName: params.realName,
+                phone: params.phone,
+                status: params.status,
+                deptId: selectedDeptId,
+              });
+              return {
+                data: res.data?.records || [],
+                total: res.data?.total || 0,
+                success: res.code === 200,
+              };
+            }}
+            columns={columns}
+            rowSelection={{
+              onChange: (_, selectedRows) => {
+                setSelectedRows(selectedRows);
+              },
+            }}
+            pagination={{
+              defaultPageSize: 10,
+              showSizeChanger: true,
+              showQuickJumper: true,
+            }}
+          />
+        </Col>
+      </Row>
       {selectedRowsState?.length > 0 && (
         <FooterToolbar
           extra={
@@ -287,30 +289,6 @@ const UserList: React.FC = () => {
           </Button>
         </FooterToolbar>
       )}
-
-      <Drawer
-        width={600}
-        open={showDetail}
-        onClose={() => {
-          setCurrentRow(undefined);
-          setShowDetail(false);
-        }}
-        closable={false}
-      >
-        {currentRow?.username && (
-          <ProDescriptions<API.SysUser>
-            column={2}
-            title={currentRow?.username}
-            request={async () => ({
-              data: currentRow || {},
-            })}
-            params={{
-              id: currentRow?.userId,
-            }}
-            columns={columns as ProDescriptionsItemProps<API.SysUser>[]}
-          />
-        )}
-      </Drawer>
     </PageContainer>
   );
 };

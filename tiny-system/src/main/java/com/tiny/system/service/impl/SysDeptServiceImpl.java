@@ -1,7 +1,6 @@
 package com.tiny.system.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -22,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -42,7 +42,7 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
     @Override
     public List<SysDeptVO> list(SysDeptQueryDTO queryDTO) {
         List<SysDept> depts = listDepts(queryDTO);
-        return depts.stream().map(this::toVO).collect(Collectors.toList());
+        return depts.stream().map(SysDept::toVO).collect(Collectors.toList());
     }
 
     @Override
@@ -51,7 +51,7 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
         if (dept == null) {
             throw new BusinessException("部门不存在");
         }
-        SysDeptVO vo = toVO(dept);
+        SysDeptVO vo = dept.toVO();
         // 设置父部门名称
         if (dept.getParentId() != null && dept.getParentId() > 0) {
             SysDept parent = this.getById(dept.getParentId());
@@ -78,17 +78,17 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
         // 设置祖级列表
         if (dept.getParentId() == 0L) {
             dept.setAncestors("0");
-        } else {
-            SysDept parent = this.getById(dept.getParentId());
-            if (parent == null) {
-                throw new BusinessException("父部门不存在");
-            }
-            if (StatusEnum.DISABLE.getCode().equals(parent.getStatus())) {
-                throw new BusinessException("父部门已停用，不允许新增子部门");
-            }
-            dept.setAncestors(parent.getAncestors() + "," + parent.getDeptId());
+            this.save(dept);
+            return;
         }
-
+        SysDept parent = this.getById(dept.getParentId());
+        if (parent == null) {
+            throw new BusinessException("父部门不存在");
+        }
+        if (StatusEnum.DISABLE.getCode().equals(parent.getStatus())) {
+            throw new BusinessException("父部门已停用，不允许新增子部门");
+        }
+        dept.setAncestors(parent.getAncestors() + "," + parent.getDeptId());
         this.save(dept);
     }
 
@@ -111,20 +111,15 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
         }
 
         // 不能将自己的子部门设置为自己的父部门
-        if (dto.getParentId() != null && dto.getParentId() != 0) {
-            List<Long> childIds = getChildDeptIds(dto.getDeptId());
-            if (childIds.contains(dto.getParentId())) {
-                throw new BusinessException("上级部门不能是自己的子部门");
-            }
+        if (dto.getParentId() != null && !Long.valueOf(0L).equals(dto.getParentId()) && getChildDeptIds(dto.getDeptId()).contains(dto.getParentId())) {
+            throw new BusinessException("上级部门不能是自己的子部门");
         }
 
         String oldAncestors = dept.getAncestors();
         Long newParentId = dto.getParentId() != null ? dto.getParentId() : 0L;
-        String newAncestors;
+        String newAncestors = "0";
 
-        if (newParentId == 0L) {
-            newAncestors = "0";
-        } else {
+        if (newParentId != 0L) {
             SysDept parent = this.getById(newParentId);
             if (parent == null) {
                 throw new BusinessException("父部门不存在");
@@ -153,15 +148,13 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
         }
 
         // 检查是否有子部门
-        Long childCount = this.count(Wrappers.<SysDept>lambdaQuery()
-                .eq(SysDept::getParentId, deptId));
+        long childCount = this.count(Wrappers.<SysDept>lambdaQuery().eq(SysDept::getParentId, deptId));
         if (childCount > 0) {
             throw new BusinessException("存在子部门，不允许删除");
         }
 
         // 检查是否有用户
-        Long userCount = userMapper.selectCount(Wrappers.<SysUser>lambdaQuery()
-                .eq(SysUser::getDeptId, deptId));
+        Long userCount = userMapper.selectCount(Wrappers.<SysUser>lambdaQuery().eq(SysUser::getDeptId, deptId));
         if (userCount > 0) {
             throw new BusinessException("部门下存在用户，不允许删除");
         }
@@ -176,24 +169,26 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
             throw new BusinessException("部门不存在");
         }
 
-        // 如果是停用，需要检查子部门状态
+        // 停用时检查是否有未停用的子部门
         if (StatusEnum.DISABLE.getCode().equals(status)) {
-            Long normalChildCount = this.count(Wrappers.<SysDept>lambdaQuery()
+            long normalChildCount = this.count(Wrappers.<SysDept>lambdaQuery()
                     .eq(SysDept::getParentId, deptId)
                     .eq(SysDept::getStatus, StatusEnum.NORMAL.getCode()));
             if (normalChildCount > 0) {
                 throw new BusinessException("该部门包含未停用的子部门");
             }
-        } else {
-            // 如果是启用，需要检查父部门状态
-            if (dept.getParentId() != null && dept.getParentId() > 0) {
-                SysDept parent = this.getById(dept.getParentId());
-                if (parent != null && StatusEnum.DISABLE.getCode().equals(parent.getStatus())) {
-                    throw new BusinessException("父部门已停用，不允许启用");
-                }
-            }
+            dept.setStatus(status);
+            this.updateById(dept);
+            return;
         }
 
+        // 启用时检查父部门是否已停用
+        if (dept.getParentId() != null && dept.getParentId() > 0) {
+            SysDept parent = this.getById(dept.getParentId());
+            if (parent != null && StatusEnum.DISABLE.getCode().equals(parent.getStatus())) {
+                throw new BusinessException("父部门已停用，不允许启用");
+            }
+        }
         dept.setStatus(status);
         this.updateById(dept);
     }
@@ -203,8 +198,9 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
         List<Long> result = new ArrayList<>();
         result.add(deptId);
 
-        List<SysDept> children = this.list(Wrappers.<SysDept>lambdaQuery()
-                .likeRight(SysDept::getAncestors, deptId));
+        // ancestors 格式为 "0,1,2"，需要匹配包含 ",deptId," 或以 ",deptId" 结尾的记录
+        // 使用 like 匹配 ",deptId" 可以覆盖这两种情况
+        List<SysDept> children = this.list(Wrappers.<SysDept>lambdaQuery().like(SysDept::getAncestors, "," + deptId));
         for (SysDept child : children) {
             result.add(child.getDeptId());
         }
@@ -214,15 +210,12 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
 
     @Override
     public List<SysDeptVO> treeExclude(Long excludeDeptId) {
-        List<SysDept> depts = this.list(Wrappers.<SysDept>lambdaQuery()
-                .orderByAsc(SysDept::getSort));
+        List<SysDept> depts = this.list(Wrappers.<SysDept>lambdaQuery().orderByAsc(SysDept::getSort));
 
         // 过滤掉指定部门及其子部门
         if (excludeDeptId != null) {
             List<Long> excludeIds = getChildDeptIds(excludeDeptId);
-            depts = depts.stream()
-                    .filter(d -> !excludeIds.contains(d.getDeptId()))
-                    .collect(Collectors.toList());
+            depts = depts.stream().filter(d -> !excludeIds.contains(d.getDeptId())).collect(Collectors.toList());
         }
 
         return buildTree(depts);
@@ -245,21 +238,27 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
      * 构建部门树
      */
     private List<SysDeptVO> buildTree(List<SysDept> depts) {
-        List<SysDeptVO> voList = depts.stream().map(this::toVO).collect(Collectors.toList());
-        List<SysDeptVO> tree = new ArrayList<>();
+        List<SysDeptVO> voList = depts.stream().map(SysDept::toVO).toList();
 
+        // 使用 Map 优化查找，时间复杂度从 O(n^2) 降为 O(n)
+        Map<Long, SysDeptVO> deptMap = voList.stream().collect(Collectors.toMap(SysDeptVO::getDeptId, vo -> vo));
+
+        List<SysDeptVO> tree = new ArrayList<>();
         for (SysDeptVO vo : voList) {
+            // 根节点直接加入树
             if (vo.getParentId() == null || vo.getParentId() == 0) {
                 tree.add(vo);
+                continue;
             }
-            for (SysDeptVO child : voList) {
-                if (vo.getDeptId().equals(child.getParentId())) {
-                    if (vo.getChildren() == null) {
-                        vo.setChildren(new ArrayList<>());
-                    }
-                    vo.getChildren().add(child);
-                }
+            // 挂载到父节点
+            SysDeptVO parent = deptMap.get(vo.getParentId());
+            if (parent == null) {
+                continue;
             }
+            if (parent.getChildren() == null) {
+                parent.setChildren(new ArrayList<>());
+            }
+            parent.getChildren().add(vo);
         }
 
         return tree;
@@ -270,8 +269,7 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
      */
     private boolean checkDeptNameExists(String deptName, Long parentId, Long excludeDeptId) {
         LambdaQueryWrapper<SysDept> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysDept::getDeptName, deptName)
-                .eq(SysDept::getParentId, parentId != null ? parentId : 0L);
+        wrapper.eq(SysDept::getDeptName, deptName).eq(SysDept::getParentId, parentId != null ? parentId : 0L);
         if (excludeDeptId != null) {
             wrapper.ne(SysDept::getDeptId, excludeDeptId);
         }
@@ -279,23 +277,20 @@ public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> impl
     }
 
     /**
-     * 更新子部门的祖级列表
+     * 更新子部门的祖级列表（批量更新）
      */
     private void updateChildAncestors(Long deptId, String oldAncestors, String newAncestors) {
         List<SysDept> children = this.list(Wrappers.<SysDept>lambdaQuery()
                 .likeRight(SysDept::getAncestors, oldAncestors + "," + deptId));
 
+        if (children.isEmpty()) {
+            return;
+        }
+
         for (SysDept child : children) {
             String childAncestors = child.getAncestors();
             child.setAncestors(childAncestors.replaceFirst(oldAncestors, newAncestors));
-            this.updateById(child);
         }
-    }
-
-    /**
-     * 实体转VO
-     */
-    private SysDeptVO toVO(SysDept dept) {
-        return dept.toVO();
+        this.updateBatchById(children);
     }
 }

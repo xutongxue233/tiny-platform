@@ -90,4 +90,14 @@ public class SysUserVO implements Serializable {
      * 角色名称列表
      */
     private List<String> roleNames;
+
+    /**
+     * 是否被封禁
+     */
+    private Boolean disabled;
+
+    /**
+     * 封禁剩余时间（秒），-1表示永久封禁，null或0表示未封禁
+     */
+    private Long disableTime;
 }

@@ -1,5 +1,6 @@
 package com.tiny.core.config;
 
+import cn.dev33.satoken.exception.DisableServiceException;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.exception.NotRoleException;
@@ -42,5 +43,41 @@ public class SaTokenExceptionHandler {
     public ResponseResult<?> handleNotRoleException(NotRoleException e) {
         log.warn("角色不足异常：{}", e.getMessage());
         return ResponseResult.fail(403, "角色不足");
+    }
+
+    /**
+     * 账号被封禁异常
+     */
+    @ExceptionHandler(DisableServiceException.class)
+    public ResponseResult<?> handleDisableServiceException(DisableServiceException e) {
+        log.warn("账号被封禁异常：{}", e.getMessage());
+        long disableTime = e.getDisableTime();
+        String msg = disableTime == -1 ? "账号已被永久封禁" : "账号已被封禁，剩余时间：" + formatDisableTime(disableTime);
+        return ResponseResult.fail(403, msg);
+    }
+
+    private String formatDisableTime(long seconds) {
+        if (seconds <= 0) {
+            return "0秒";
+        }
+        long days = seconds / 86400;
+        long hours = (seconds % 86400) / 3600;
+        long minutes = (seconds % 3600) / 60;
+        long secs = seconds % 60;
+
+        StringBuilder sb = new StringBuilder();
+        if (days > 0) {
+            sb.append(days).append("天");
+        }
+        if (hours > 0) {
+            sb.append(hours).append("小时");
+        }
+        if (minutes > 0) {
+            sb.append(minutes).append("分钟");
+        }
+        if (secs > 0 && days == 0) {
+            sb.append(secs).append("秒");
+        }
+        return sb.toString();
     }
 }

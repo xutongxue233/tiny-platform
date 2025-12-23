@@ -112,4 +112,24 @@ public class SysUserController {
         return ResponseResult.ok(list);
     }
 
+    @Operation(summary = "封禁用户")
+    @OperationLog(module = "用户管理", type = OperationType.UPDATE, desc = "封禁用户")
+    @SaCheckPermission("system:user:disable")
+    @PostMapping("/disable/{userId}")
+    public ResponseResult<Void> disableUser(
+            @Parameter(description = "用户ID") @PathVariable Long userId,
+            @Parameter(description = "封禁时长（秒），-1表示永久封禁") @RequestParam(defaultValue = "-1") long disableTime) {
+        userService.disableUser(userId, disableTime);
+        return ResponseResult.ok();
+    }
+
+    @Operation(summary = "解除封禁")
+    @OperationLog(module = "用户管理", type = OperationType.UPDATE, desc = "解除封禁")
+    @SaCheckPermission("system:user:disable")
+    @PostMapping("/untieDisable/{userId}")
+    public ResponseResult<Void> untieDisable(@Parameter(description = "用户ID") @PathVariable Long userId) {
+        userService.untieDisable(userId);
+        return ResponseResult.ok();
+    }
+
 }

@@ -587,3 +587,88 @@ export async function changeDeptStatus(
     ...(options || {}),
   });
 }
+
+/** 获取在线用户分页列表 POST /api/monitor/online/page */
+export async function getOnlineUserPage(
+  params: API.OnlineUserQueryParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResponseResult<API.PageResult<API.OnlineUser>>>('/api/monitor/online/page', {
+    method: 'POST',
+    data: {
+      current: params.current || 1,
+      size: params.size || 10,
+      username: params.username,
+      ipAddr: params.ipAddr,
+    },
+    ...(options || {}),
+  });
+}
+
+/** 强制退出用户 DELETE /api/monitor/online/kickout/:tokenId */
+export async function kickoutOnlineUser(
+  tokenId: string,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResponseResult<void>>(`/api/monitor/online/kickout/${encodeURIComponent(tokenId)}`, {
+    method: 'DELETE',
+    ...(options || {}),
+  });
+}
+
+/** 强制退出用户（根据用户ID） DELETE /api/monitor/online/kickoutByUserId/:userId */
+export async function kickoutOnlineUserByUserId(
+  userId: number,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResponseResult<void>>(`/api/monitor/online/kickoutByUserId/${userId}`, {
+    method: 'DELETE',
+    ...(options || {}),
+  });
+}
+
+/** 封禁用户账号 POST /api/monitor/online/disable/:userId */
+export async function disableOnlineUser(
+  userId: number,
+  disableTime: number = -1,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResponseResult<void>>(`/api/monitor/online/disable/${userId}`, {
+    method: 'POST',
+    params: { disableTime },
+    ...(options || {}),
+  });
+}
+
+/** 解除用户封禁 POST /api/monitor/online/untieDisable/:userId */
+export async function untieDisableUser(
+  userId: number,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResponseResult<void>>(`/api/monitor/online/untieDisable/${userId}`, {
+    method: 'POST',
+    ...(options || {}),
+  });
+}
+
+/** 检查用户是否被封禁 GET /api/monitor/online/isDisabled/:userId */
+export async function checkUserDisabled(
+  userId: number,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResponseResult<boolean>>(`/api/monitor/online/isDisabled/${userId}`, {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
+/** 获取用户封禁剩余时间 GET /api/monitor/online/disableTime/:userId */
+export async function getUserDisableTime(
+  userId: number,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResponseResult<number>>(`/api/monitor/online/disableTime/${userId}`, {
+    method: 'GET',
+    ...(options || {}),
+  });
+}

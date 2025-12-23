@@ -14,6 +14,7 @@ CREATE TABLE sys_user (
     gender CHAR(1) DEFAULT '2' COMMENT '性别（0男 1女 2未知）',
     avatar VARCHAR(255) COMMENT '头像',
     dept_id BIGINT COMMENT '部门ID',
+    super_admin TINYINT DEFAULT 0 COMMENT '是否超级管理员（0否 1是）',
     status CHAR(1) DEFAULT '0' COMMENT '状态（0正常 1停用）',
     create_by VARCHAR(50) COMMENT '创建人',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -120,8 +121,8 @@ CREATE TABLE sys_role_dept (
 
 -- 初始化数据
 -- 初始化超级管理员（密码：123456）
-INSERT INTO sys_user (username, password, real_name, status)
-VALUES ('admin', '$2b$12$gis3AeExTCSgNeiYSBtwmOKyYBCrso5JP4P7Aexj/0t1fdB8z6Evy', '超级管理员', '0');
+INSERT INTO sys_user (username, password, real_name, super_admin, status)
+VALUES ('admin', '$2b$12$gis3AeExTCSgNeiYSBtwmOKyYBCrso5JP4P7Aexj/0t1fdB8z6Evy', '超级管理员', 1, '0');
 
 -- 初始化角色
 INSERT INTO sys_role (role_name, role_key, sort, status)
@@ -159,7 +160,13 @@ INSERT INTO sys_menu (menu_name, parent_id, sort, path, component, menu_type, vi
 ('登录日志查询', 23, 1, NULL, NULL, 'F', '0', '0', 'monitor:loginLog:query', NULL),
 ('登录日志删除', 23, 2, NULL, NULL, 'F', '0', '0', 'monitor:loginLog:remove', NULL),
 ('操作日志查询', 24, 1, NULL, NULL, 'F', '0', '0', 'monitor:operationLog:query', NULL),
-('操作日志删除', 24, 2, NULL, NULL, 'F', '0', '0', 'monitor:operationLog:remove', NULL);
+('操作日志删除', 24, 2, NULL, NULL, 'F', '0', '0', 'monitor:operationLog:remove', NULL),
+('在线用户', 22, 3, '/monitor/onlineUser', 'monitor/onlineUser/index', 'C', '0', '0', 'monitor:online:list', 'TeamOutlined'),
+('在线用户查询', 29, 1, NULL, NULL, 'F', '0', '0', 'monitor:online:list', NULL),
+('强制退出', 29, 2, NULL, NULL, 'F', '0', '0', 'monitor:online:kickout', NULL),
+('用户封禁', 29, 3, NULL, NULL, 'F', '0', '0', 'monitor:online:disable', NULL),
+('重置密码', 2, 5, NULL, NULL, 'F', '0', '0', 'system:user:resetPwd', NULL),
+('封禁用户', 2, 6, NULL, NULL, 'F', '0', '0', 'system:user:disable', NULL);
 
 -- 初始化部门数据
 INSERT INTO sys_dept (dept_name, parent_id, ancestors, sort, leader, phone, email, status) VALUES

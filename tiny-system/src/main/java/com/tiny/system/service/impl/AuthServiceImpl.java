@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -72,6 +73,14 @@ public class AuthServiceImpl implements AuthService {
         if (StatusEnum.DISABLE.getCode().equals(user.getStatus())) {
             loginLogService.recordLoginLog(username, user.getUserId(), LoginTypeEnum.LOGIN.getCode(), StatusEnum.DISABLE.getCode(), "用户已被停用", ipAddr, userAgent);
             throw new BusinessException("用户已被停用");
+        }
+
+        // 检查用户是否被封禁
+        if (StpUtil.isDisable(user.getUserId())) {
+            long disableTime = StpUtil.getDisableTime(user.getUserId());
+            String msg = disableTime == -1 ? "账号已被永久封禁" : "账号已被封禁，剩余时间：" + formatDisableTime(disableTime);
+            loginLogService.recordLoginLog(username, user.getUserId(), LoginTypeEnum.LOGIN.getCode(), StatusEnum.DISABLE.getCode(), msg, ipAddr, userAgent);
+            throw new BusinessException(msg);
         }
 
         // 查询用户角色
@@ -135,7 +144,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 保存登录用户信息
         LoginUser loginUser = BeanUtil.copyProperties(user, LoginUser.class);
-        loginUser.setSuperAdmin(Integer.valueOf(1).equals(user.getSuperAdmin()));
+        loginUser.setSuperAdmin(Objects.equals(1, user.getSuperAdmin()));
         loginUser.setRoles(roles);
         loginUser.setPermissions(permissions);
         loginUser.setRoleIds(new HashSet<>(roleIds));
@@ -185,5 +194,33 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return userInfo;
+    }
+
+    /**
+     * 格式化封禁剩余时间
+     */
+    private String formatDisableTime(long seconds) {
+        if (seconds <= 0) {
+            return "0秒";
+        }
+        long days = seconds / 86400;
+        long hours = (seconds % 86400) / 3600;
+        long minutes = (seconds % 3600) / 60;
+        long secs = seconds % 60;
+
+        StringBuilder sb = new StringBuilder();
+        if (days > 0) {
+            sb.append(days).append("天");
+        }
+        if (hours > 0) {
+            sb.append(hours).append("小时");
+        }
+        if (minutes > 0) {
+            sb.append(minutes).append("分钟");
+        }
+        if (secs > 0 && days == 0) {
+            sb.append(secs).append("秒");
+        }
+        return sb.toString();
     }
 }

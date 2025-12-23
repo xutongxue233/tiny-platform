@@ -369,4 +369,29 @@ declare namespace API {
     beginTime?: string;
     endTime?: string;
   };
+
+  /** 在线用户 */
+  type OnlineUser = {
+    tokenId?: string;
+    userId?: number;
+    username?: string;
+    realName?: string;
+    deptId?: number;
+    deptName?: string;
+    ipAddr?: string;
+    loginLocation?: string;
+    browser?: string;
+    os?: string;
+    loginTime?: number;
+    lastAccessTime?: number;
+    tokenTimeout?: number;
+  };
+
+  /** 在线用户查询参数 */
+  type OnlineUserQueryParams = {
+    current?: number;
+    size?: number;
+    username?: string;
+    ipAddr?: string;
+  };
 }

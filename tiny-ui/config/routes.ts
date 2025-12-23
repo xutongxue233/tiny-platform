@@ -88,6 +88,10 @@ export default [
         path: '/monitor/operationLog',
         component: './monitor/operationLog/index',
       },
+      {
+        path: '/monitor/onlineUser',
+        component: './monitor/onlineUser/index',
+      },
     ],
   },
   {

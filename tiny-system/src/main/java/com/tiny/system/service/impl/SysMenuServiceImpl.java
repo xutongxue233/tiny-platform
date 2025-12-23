@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -71,13 +72,15 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 
     @Override
     public void add(SysMenuDTO dto) {
+        Long parentId = dto.getParentId() != null ? dto.getParentId() : 0L;
+
         // 检查菜单名称是否已存在（同一父级下）
-        if (checkMenuNameExists(dto.getMenuName(), dto.getParentId(), null)) {
+        if (checkMenuNameExists(dto.getMenuName(), parentId, null)) {
             throw new BusinessException("同一父级下菜单名称已存在");
         }
 
         SysMenu menu = BeanUtil.copyProperties(dto, SysMenu.class, "parentId", "sort", "menuType", "visible", "status");
-        menu.setParentId(dto.getParentId() != null ? dto.getParentId() : 0L);
+        menu.setParentId(parentId);
         menu.setSort(dto.getSort() != null ? dto.getSort() : 0);
         menu.setMenuType(StrUtil.isBlank(dto.getMenuType()) ? "M" : dto.getMenuType());
         menu.setVisible(StrUtil.isBlank(dto.getVisible()) ? "0" : dto.getVisible());
@@ -104,7 +107,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
         }
 
         // 不能将父菜单设置为自己的子菜单
-        if (dto.getParentId() != null && dto.getParentId() != 0) {
+        if (dto.getParentId() != null && !Long.valueOf(0L).equals(dto.getParentId())) {
             List<Long> childIds = getAllChildIds(dto.getMenuId());
             if (childIds.contains(dto.getParentId())) {
                 throw new BusinessException("父菜单不能选择自己的子菜单");
@@ -160,18 +163,26 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
     }
 
     /**
-     * 获取所有子菜单ID
+     * 获取所有子菜单ID（优化版本，避免N+1查询）
      */
     private List<Long> getAllChildIds(Long menuId) {
-        List<Long> childIds = new ArrayList<>();
-        List<SysMenu> children = this.list(Wrappers.<SysMenu>lambdaQuery()
-                .eq(SysMenu::getParentId, menuId)
-        );
-        for (SysMenu child : children) {
-            childIds.add(child.getMenuId());
-            childIds.addAll(getAllChildIds(child.getMenuId()));
+        List<SysMenu> allMenus = this.list(Wrappers.<SysMenu>lambdaQuery()
+                .select(SysMenu::getMenuId, SysMenu::getParentId));
+        return collectChildIds(allMenus, menuId);
+    }
+
+    /**
+     * 递归收集子菜单ID
+     */
+    private List<Long> collectChildIds(List<SysMenu> allMenus, Long parentId) {
+        List<Long> result = new ArrayList<>();
+        for (SysMenu menu : allMenus) {
+            if (parentId.equals(menu.getParentId())) {
+                result.add(menu.getMenuId());
+                result.addAll(collectChildIds(allMenus, menu.getMenuId()));
+            }
         }
-        return childIds;
+        return result;
     }
 
     /**
@@ -201,7 +212,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 
         // 检查是否为超级管理员
         SysUser user = userMapper.selectById(userId);
-        if (user != null && Integer.valueOf(1).equals(user.getSuperAdmin())) {
+        if (user != null && Objects.equals(1, user.getSuperAdmin())) {
             // 超级管理员获取所有菜单
             menus = this.list(Wrappers.<SysMenu>lambdaQuery()
                     .in(SysMenu::getMenuType, "M", "C")

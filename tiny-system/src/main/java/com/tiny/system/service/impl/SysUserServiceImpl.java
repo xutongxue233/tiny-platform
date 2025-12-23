@@ -1,6 +1,7 @@
 package com.tiny.system.service.impl;
 
 import cn.dev33.satoken.secure.BCrypt;
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
@@ -8,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
 import com.tiny.common.annotation.DataScope;
 import com.tiny.common.constant.CommonConstants;
 import com.tiny.common.core.page.PageResult;
@@ -31,7 +33,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -59,7 +64,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 .orderByDesc(SysUser::getCreateTime);
 
         Page<SysUser> result = baseMapper.selectPage(page, wrapper);
-        return PageResult.of(result, this::toVO);
+
+        // 批量转换VO，避免N+1查询
+        List<SysUserVO> voList = toVOListBatch(result.getRecords());
+        return PageResult.of(voList, result.getTotal(), result.getCurrent(), result.getSize());
     }
 
     @Override
@@ -205,6 +213,29 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         this.updateById(user);
     }
 
+    @Override
+    public void disableUser(Long userId, long disableTime) {
+        SysUser user = this.getById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 不允许封禁超级管理员
+        if (CommonConstants.SUPER_ADMIN.equals(user.getSuperAdmin())) {
+            throw new BusinessException("不允许封禁超级管理员");
+        }
+
+        // 先踢出所有会话
+        StpUtil.kickout(userId);
+        // 封禁账号
+        StpUtil.disable(userId, disableTime);
+    }
+
+    @Override
+    public void untieDisable(Long userId) {
+        StpUtil.untieDisable(userId);
+    }
+
     private boolean checkUsernameExists(String username, Long excludeUserId) {
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysUser::getUsername, username);
@@ -233,19 +264,73 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     /**
-     * 保存用户角色关联
+     * 保存用户角色关联（批量插入）
      */
     private void saveUserRoles(Long userId, List<Long> roleIds) {
-        for (Long roleId : roleIds) {
-            SysUserRole userRole = new SysUserRole();
-            userRole.setUserId(userId);
-            userRole.setRoleId(roleId);
-            userRoleMapper.insert(userRole);
-        }
+        List<SysUserRole> userRoles = roleIds.stream()
+                .map(roleId -> {
+                    SysUserRole userRole = new SysUserRole();
+                    userRole.setUserId(userId);
+                    userRole.setRoleId(roleId);
+                    return userRole;
+                })
+                .collect(Collectors.toList());
+        Db.saveBatch(userRoles);
     }
 
     /**
-     * 实体转VO（包含关联数据）
+     * 批量转换VO（优化N+1查询）
+     */
+    private List<SysUserVO> toVOListBatch(List<SysUser> users) {
+        if (CollUtil.isEmpty(users)) {
+            return new ArrayList<>();
+        }
+
+        List<Long> userIds = users.stream().map(SysUser::getUserId).collect(Collectors.toList());
+        List<Long> deptIds = users.stream().map(SysUser::getDeptId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+
+        // 批量查询部门
+        Map<Long, String> deptNameMap = CollUtil.isEmpty(deptIds) ? Collections.emptyMap() :
+                deptMapper.selectList(Wrappers.<SysDept>lambdaQuery().in(SysDept::getDeptId, deptIds))
+                        .stream().collect(Collectors.toMap(SysDept::getDeptId, SysDept::getDeptName));
+
+        // 批量查询用户角色关联
+        List<SysUserRole> userRoles = userRoleMapper.selectList(
+                Wrappers.<SysUserRole>lambdaQuery().in(SysUserRole::getUserId, userIds));
+        Map<Long, List<Long>> userRoleMap = userRoles.stream()
+                .collect(Collectors.groupingBy(SysUserRole::getUserId,
+                        Collectors.mapping(SysUserRole::getRoleId, Collectors.toList())));
+
+        // 批量查询角色信息
+        List<Long> allRoleIds = userRoles.stream().map(SysUserRole::getRoleId).distinct().collect(Collectors.toList());
+        Map<Long, String> roleNameMap = CollUtil.isEmpty(allRoleIds) ? Collections.emptyMap() :
+                roleMapper.selectList(Wrappers.<SysRole>lambdaQuery().in(SysRole::getRoleId, allRoleIds))
+                        .stream().collect(Collectors.toMap(SysRole::getRoleId, SysRole::getRoleName));
+
+        // 组装VO
+        return users.stream().map(user -> {
+            SysUserVO vo = user.toVO();
+            if (user.getDeptId() != null) {
+                vo.setDeptName(deptNameMap.get(user.getDeptId()));
+            }
+
+            List<Long> roleIds = userRoleMap.getOrDefault(user.getUserId(), new ArrayList<>());
+            vo.setRoleIds(roleIds);
+            vo.setRoleNames(roleIds.stream().map(roleNameMap::get).filter(Objects::nonNull).collect(Collectors.toList()));
+
+            // 查询封禁状态
+            boolean disabled = StpUtil.isDisable(user.getUserId());
+            vo.setDisabled(disabled);
+            if (disabled) {
+                vo.setDisableTime(StpUtil.getDisableTime(user.getUserId()));
+            }
+
+            return vo;
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 实体转VO（包含关联数据，用于单条查询）
      */
     private SysUserVO toVO(SysUser user) {
         SysUserVO vo = user.toVO();
@@ -270,10 +355,16 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                     Wrappers.<SysRole>lambdaQuery().in(SysRole::getRoleId, roleIds)
             ).stream().map(SysRole::getRoleName).collect(Collectors.toList());
             vo.setRoleNames(roleNames);
-            return vo;
+        } else {
+            vo.setRoleNames(new ArrayList<>());
         }
 
-        vo.setRoleNames(new ArrayList<>());
+        // 查询封禁状态
+        boolean disabled = StpUtil.isDisable(user.getUserId());
+        vo.setDisabled(disabled);
+        if (disabled) {
+            vo.setDisableTime(StpUtil.getDisableTime(user.getUserId()));
+        }
 
         return vo;
     }
