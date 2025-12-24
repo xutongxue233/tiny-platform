@@ -7,15 +7,17 @@ import {
   ProFormText,
   ProFormTextArea,
   ProFormDependency,
+  ProFormItem,
 } from '@ant-design/pro-components';
 import { useIntl } from '@umijs/max';
-import { Button, Form, message } from 'antd';
+import { Button, Col, message, Row } from 'antd';
 import type { FC, ReactElement } from 'react';
 import { cloneElement, useCallback, useRef, useState } from 'react';
 import { addRole, getRoleDetail, updateRole } from '@/services/ant-design-pro/api';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import MenuTreeSelect from './MenuTreeSelect';
 import DeptTreeSelect from './DeptTreeSelect';
+import { useDicts } from '@/hooks/useDict';
 
 interface RoleFormProps {
   trigger?: ReactElement;
@@ -33,6 +35,11 @@ const RoleForm: FC<RoleFormProps> = (props) => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const formRef = useRef<ProFormInstance>();
+
+  const { getOptions } = useDicts(['sys_data_scope', 'sys_common_status']);
+
+  const dataScopeOptions = getOptions('sys_data_scope');
+  const statusOptions = getOptions('sys_common_status');
 
   const onOpen = useCallback(async () => {
     setOpen(true);
@@ -115,7 +122,7 @@ const RoleForm: FC<RoleFormProps> = (props) => {
         })}
         open={open}
         onOpenChange={setOpen}
-        width={600}
+        width={700}
         loading={detailLoading}
         modalProps={{
           destroyOnHidden: true,
@@ -123,141 +130,129 @@ const RoleForm: FC<RoleFormProps> = (props) => {
         }}
         onFinish={handleFinish}
       >
-        <ProFormText
-          name="roleName"
-          label={intl.formatMessage({ id: 'pages.role.roleName', defaultMessage: '角色名称' })}
-          placeholder={intl.formatMessage({
-            id: 'pages.role.roleNamePlaceholder',
-            defaultMessage: '请输入角色名称',
-          })}
-          rules={[
-            {
-              required: true,
-              message: intl.formatMessage({
-                id: 'pages.role.roleNameRequired',
+        <Row gutter={16}>
+          <Col span={12}>
+            <ProFormText
+              name="roleName"
+              label={intl.formatMessage({ id: 'pages.role.roleName', defaultMessage: '角色名称' })}
+              placeholder={intl.formatMessage({
+                id: 'pages.role.roleNamePlaceholder',
                 defaultMessage: '请输入角色名称',
-              }),
-            },
-            {
-              max: 30,
-              message: intl.formatMessage({
-                id: 'pages.role.roleNameMaxLength',
-                defaultMessage: '角色名称不能超过30个字符',
-              }),
-            },
-          ]}
-        />
-        <ProFormText
-          name="roleKey"
-          label={intl.formatMessage({ id: 'pages.role.roleKey', defaultMessage: '角色标识' })}
-          placeholder={intl.formatMessage({
-            id: 'pages.role.roleKeyPlaceholder',
-            defaultMessage: '请输入角色标识',
-          })}
-          tooltip={intl.formatMessage({
-            id: 'pages.role.roleKeyTooltip',
-            defaultMessage: '角色唯一标识，如：admin、user',
-          })}
-          rules={[
-            {
-              required: true,
-              message: intl.formatMessage({
-                id: 'pages.role.roleKeyRequired',
+              })}
+              rules={[
+                {
+                  required: true,
+                  message: intl.formatMessage({
+                    id: 'pages.role.roleNameRequired',
+                    defaultMessage: '请输入角色名称',
+                  }),
+                },
+                {
+                  max: 30,
+                  message: intl.formatMessage({
+                    id: 'pages.role.roleNameMaxLength',
+                    defaultMessage: '角色名称不能超过30个字符',
+                  }),
+                },
+              ]}
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormText
+              name="roleKey"
+              label={intl.formatMessage({ id: 'pages.role.roleKey', defaultMessage: '角色标识' })}
+              placeholder={intl.formatMessage({
+                id: 'pages.role.roleKeyPlaceholder',
                 defaultMessage: '请输入角色标识',
-              }),
-            },
-            {
-              max: 100,
-              message: intl.formatMessage({
-                id: 'pages.role.roleKeyMaxLength',
-                defaultMessage: '角色标识不能超过100个字符',
-              }),
-            },
-            {
-              pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/,
-              message: intl.formatMessage({
-                id: 'pages.role.roleKeyPattern',
-                defaultMessage: '角色标识只能包含字母、数字和下划线，且以字母开头',
-              }),
-            },
-          ]}
-        />
-        <ProFormDigit
-          name="sort"
-          label={intl.formatMessage({ id: 'pages.role.sort', defaultMessage: '显示顺序' })}
-          min={0}
-          max={9999}
-          fieldProps={{ precision: 0 }}
-        />
-        <ProFormSelect
-          name="dataScope"
-          label={intl.formatMessage({ id: 'pages.role.dataScope', defaultMessage: '数据范围' })}
-          options={[
-            {
-              label: intl.formatMessage({ id: 'pages.role.dataScope.all', defaultMessage: '全部数据' }),
-              value: '1',
-            },
-            {
-              label: intl.formatMessage({ id: 'pages.role.dataScope.custom', defaultMessage: '自定义数据' }),
-              value: '2',
-            },
-            {
-              label: intl.formatMessage({ id: 'pages.role.dataScope.dept', defaultMessage: '本部门数据' }),
-              value: '3',
-            },
-            {
-              label: intl.formatMessage({ id: 'pages.role.dataScope.deptAndBelow', defaultMessage: '本部门及以下数据' }),
-              value: '4',
-            },
-            {
-              label: intl.formatMessage({ id: 'pages.role.dataScope.self', defaultMessage: '仅本人数据' }),
-              value: '5',
-            },
-          ]}
-        />
-        <ProFormRadio.Group
-          name="status"
-          label={intl.formatMessage({ id: 'pages.role.status', defaultMessage: '状态' })}
-          options={[
-            {
-              label: intl.formatMessage({ id: 'pages.role.status.normal', defaultMessage: '正常' }),
-              value: '0',
-            },
-            {
-              label: intl.formatMessage({ id: 'pages.role.status.disabled', defaultMessage: '停用' }),
-              value: '1',
-            },
-          ]}
-        />
-        <Form.Item
-          name="menuIds"
-          label={intl.formatMessage({ id: 'pages.role.menuPermission', defaultMessage: '菜单权限' })}
-        >
-          <MenuTreeSelect />
-        </Form.Item>
-        <ProFormDependency name={['dataScope']}>
-          {({ dataScope }) => {
-            if (dataScope === '2') {
-              return (
-                <Form.Item
-                  name="deptIds"
-                  label={intl.formatMessage({ id: 'pages.role.dataPermission', defaultMessage: '数据权限' })}
-                >
-                  <DeptTreeSelect />
-                </Form.Item>
-              );
-            }
-            return null;
-          }}
-        </ProFormDependency>
-        <ProFormTextArea
-          name="remark"
-          label={intl.formatMessage({ id: 'pages.role.remark', defaultMessage: '备注' })}
-          placeholder={intl.formatMessage({
-            id: 'pages.role.remarkPlaceholder',
-            defaultMessage: '请输入备注',
-          })}
-        />
+              })}
+              tooltip={intl.formatMessage({
+                id: 'pages.role.roleKeyTooltip',
+                defaultMessage: '角色唯一标识，如：admin、user',
+              })}
+              rules={[
+                {
+                  required: true,
+                  message: intl.formatMessage({
+                    id: 'pages.role.roleKeyRequired',
+                    defaultMessage: '请输入角色标识',
+                  }),
+                },
+                {
+                  max: 100,
+                  message: intl.formatMessage({
+                    id: 'pages.role.roleKeyMaxLength',
+                    defaultMessage: '角色标识不能超过100个字符',
+                  }),
+                },
+                {
+                  pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/,
+                  message: intl.formatMessage({
+                    id: 'pages.role.roleKeyPattern',
+                    defaultMessage: '角色标识只能包含字母、数字和下划线，且以字母开头',
+                  }),
+                },
+              ]}
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormDigit
+              name="sort"
+              label={intl.formatMessage({ id: 'pages.role.sort', defaultMessage: '显示顺序' })}
+              min={0}
+              max={9999}
+              fieldProps={{ precision: 0 }}
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormSelect
+              name="dataScope"
+              label={intl.formatMessage({ id: 'pages.role.dataScope', defaultMessage: '数据范围' })}
+              options={dataScopeOptions}
+            />
+          </Col>
+          <Col span={12}>
+            <ProFormRadio.Group
+              name="status"
+              label={intl.formatMessage({ id: 'pages.role.status', defaultMessage: '状态' })}
+              options={statusOptions}
+            />
+          </Col>
+          <Col span={24}>
+            <ProFormItem
+              name="menuIds"
+              label={intl.formatMessage({ id: 'pages.role.menuPermission', defaultMessage: '菜单权限' })}
+            >
+              <MenuTreeSelect />
+            </ProFormItem>
+          </Col>
+          <ProFormDependency name={['dataScope']}>
+            {({ dataScope }) => {
+              if (dataScope === '2') {
+                return (
+                  <Col span={24}>
+                    <ProFormItem
+                      name="deptIds"
+                      label={intl.formatMessage({ id: 'pages.role.dataPermission', defaultMessage: '数据权限' })}
+                    >
+                      <DeptTreeSelect />
+                    </ProFormItem>
+                  </Col>
+                );
+              }
+              return null;
+            }}
+          </ProFormDependency>
+          <Col span={24}>
+            <ProFormTextArea
+              name="remark"
+              label={intl.formatMessage({ id: 'pages.role.remark', defaultMessage: '备注' })}
+              placeholder={intl.formatMessage({
+                id: 'pages.role.remarkPlaceholder',
+                defaultMessage: '请输入备注',
+              })}
+            />
+          </Col>
+        </Row>
       </ModalForm>
     </>
   );

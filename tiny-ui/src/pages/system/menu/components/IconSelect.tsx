@@ -1,13 +1,13 @@
-import { ProFormText } from '@ant-design/pro-components';
-import { Input, Popover, Tabs, Empty } from 'antd';
+import { ProForm } from '@ant-design/pro-components';
+import { Input, Modal, Tabs, Empty } from 'antd';
+import { SearchOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import * as AntdIcons from '@ant-design/icons';
 import type { FC } from 'react';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 
 interface IconSelectProps {
   name: string;
   label: string;
-  colProps?: { span: number };
 }
 
 const outlinedIcons = [
@@ -135,9 +135,25 @@ const iconCategories = [
   { key: 'application', label: '应用', icons: applicationIcons },
 ];
 
-const IconSelect: FC<IconSelectProps> = ({ name, label, colProps }) => {
+const IconSelect: FC<IconSelectProps> = ({ name, label }) => {
+  return (
+    <ProForm.Item
+      name={name}
+      label={label}
+    >
+      <IconSelectInput />
+    </ProForm.Item>
+  );
+};
+
+interface IconSelectInputProps {
+  value?: string;
+  onChange?: (value: string) => void;
+}
+
+const IconSelectInput: FC<IconSelectInputProps> = ({ value, onChange }) => {
+  const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const [visible, setVisible] = useState(false);
 
   const filteredCategories = useMemo(() => {
     if (!searchValue) return iconCategories;
@@ -149,114 +165,95 @@ const IconSelect: FC<IconSelectProps> = ({ name, label, colProps }) => {
     })).filter((category) => category.icons.length > 0);
   }, [searchValue]);
 
-  const renderIconGrid = useCallback(
-    (iconNames: string[], onChange: (value: string) => void) => {
-      if (iconNames.length === 0) {
-        return <Empty description="没有找到图标" />;
-      }
-      return (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(8, 1fr)',
-            gap: 8,
-            maxHeight: 300,
-            overflowY: 'auto',
-          }}
-        >
-          {iconNames.map((iconName) => {
-            const IconComponent = (AntdIcons as any)[iconName];
-            if (!IconComponent) return null;
-            return (
-              <div
-                key={iconName}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  padding: 8,
-                  cursor: 'pointer',
-                  borderRadius: 4,
-                  transition: 'background-color 0.2s',
-                }}
-                onClick={() => {
-                  onChange(iconName);
-                  setVisible(false);
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f0f0f0';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-                title={iconName}
-              >
-                <IconComponent style={{ fontSize: 24 }} />
-              </div>
-            );
-          })}
-        </div>
-      );
-    },
-    [],
-  );
+  const handleSelect = (iconName: string) => {
+    onChange?.(iconName);
+    setOpen(false);
+    setSearchValue('');
+  };
+
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange?.('');
+  };
+
+  const handleModalClose = () => {
+    setOpen(false);
+    setSearchValue('');
+  };
+
+  const SelectedIcon = value ? (AntdIcons as any)[value] : null;
+
+  const renderIconGrid = (iconNames: string[]) => {
+    if (iconNames.length === 0) {
+      return <Empty description="没有找到图标" />;
+    }
+    return (
+      <div className="grid grid-cols-8 gap-2 max-h-80 overflow-y-auto p-1">
+        {iconNames.map((iconName) => {
+          const IconComponent = (AntdIcons as any)[iconName];
+          if (!IconComponent) return null;
+          const isSelected = value === iconName;
+          return (
+            <div
+              key={iconName}
+              className={`flex flex-col items-center justify-center p-2 cursor-pointer rounded transition-all hover:bg-gray-100 ${
+                isSelected ? 'bg-blue-50 ring-2 ring-blue-500' : ''
+              }`}
+              onClick={() => handleSelect(iconName)}
+              title={iconName}
+            >
+              <IconComponent className={`text-2xl ${isSelected ? 'text-blue-500' : ''}`} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
-    <ProFormText
-      name={name}
-      label={label}
-      colProps={colProps}
-    >
-      {({ value, onChange }) => {
-        const SelectedIcon = value ? (AntdIcons as any)[value] : null;
-        return (
-          <Popover
-            open={visible}
-            onOpenChange={setVisible}
-            trigger="click"
-            placement="bottomLeft"
-            content={
-              <div style={{ width: 480 }}>
-                <Input
-                  placeholder="搜索图标"
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  style={{ marginBottom: 12 }}
-                  allowClear
-                />
-                <Tabs
-                  size="small"
-                  items={filteredCategories.map((category) => ({
-                    key: category.key,
-                    label: `${category.label} (${category.icons.length})`,
-                    children: renderIconGrid(category.icons, onChange),
-                  }))}
-                />
-              </div>
-            }
-          >
-            <Input
-              readOnly
-              value={value}
-              placeholder="点击选择图标"
-              prefix={SelectedIcon ? <SelectedIcon /> : null}
-              suffix={
-                value ? (
-                  <AntdIcons.CloseCircleOutlined
-                    style={{ cursor: 'pointer', color: '#999' }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onChange('');
-                    }}
-                  />
-                ) : null
-              }
-              style={{ cursor: 'pointer' }}
+    <>
+      <Input
+        readOnly
+        value={value}
+        placeholder="点击选择图标"
+        onClick={() => setOpen(true)}
+        prefix={SelectedIcon ? <SelectedIcon /> : null}
+        suffix={
+          value ? (
+            <CloseCircleOutlined
+              className="cursor-pointer text-gray-400 hover:text-gray-600"
+              onClick={handleClear}
             />
-          </Popover>
-        );
-      }}
-    </ProFormText>
+          ) : null
+        }
+        className="cursor-pointer"
+      />
+      <Modal
+        title="选择图标"
+        open={open}
+        onCancel={handleModalClose}
+        footer={null}
+        width={600}
+        destroyOnClose
+      >
+        <Input
+          placeholder="搜索图标名称"
+          prefix={<SearchOutlined />}
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          allowClear
+          className="mb-4"
+        />
+        <Tabs
+          size="small"
+          items={filteredCategories.map((category) => ({
+            key: category.key,
+            label: `${category.label} (${category.icons.length})`,
+            children: renderIconGrid(category.icons),
+          }))}
+        />
+      </Modal>
+    </>
   );
 };
 

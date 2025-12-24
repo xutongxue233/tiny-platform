@@ -42,7 +42,7 @@ const DictManagement: React.FC = () => {
         <Col span={6}>
           <Card
             title={intl.formatMessage({ id: 'pages.dict.typeList', defaultMessage: '字典类型' })}
-            bordered={false}
+            variant="borderless"
             extra={
               access.hasPermission('system:dict:add') && (
                 <DictTypeForm onOk={handleDictTypeChange} />
@@ -64,7 +64,7 @@ const DictManagement: React.FC = () => {
                 ? `${intl.formatMessage({ id: 'pages.dict.itemList', defaultMessage: '字典项' })} - ${selectedDictType.dictName}`
                 : intl.formatMessage({ id: 'pages.dict.itemList', defaultMessage: '字典项' })
             }
-            bordered={false}
+            variant="borderless"
           >
             <DictItemTable
               ref={dictItemTableRef}

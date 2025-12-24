@@ -9,6 +9,7 @@ import { Button, message } from 'antd';
 import React, { useState } from 'react';
 import { addDictType, updateDictType } from '@/services/ant-design-pro/dict';
 import { PlusOutlined } from '@ant-design/icons';
+import { useDict } from '@/hooks/useDict';
 
 interface DictTypeFormProps {
   values?: API.SysDictType;
@@ -22,6 +23,8 @@ const DictTypeForm: React.FC<DictTypeFormProps> = ({ values, trigger, onOk }) =>
   const [messageApi, contextHolder] = message.useMessage();
 
   const isEdit = !!values?.dictId;
+
+  const { options: statusOptions, loading: dictLoading } = useDict('sys_common_status');
 
   const { run: addRun, loading: addLoading } = useRequest(addDictType, {
     manual: true,
@@ -113,10 +116,7 @@ const DictTypeForm: React.FC<DictTypeFormProps> = ({ values, trigger, onOk }) =>
           name="status"
           label={intl.formatMessage({ id: 'pages.dict.status', defaultMessage: '状态' })}
           initialValue="0"
-          options={[
-            { label: intl.formatMessage({ id: 'pages.dict.status.normal', defaultMessage: '正常' }), value: '0' },
-            { label: intl.formatMessage({ id: 'pages.dict.status.disabled', defaultMessage: '停用' }), value: '1' },
-          ]}
+          options={statusOptions}
         />
         <ProFormTextArea
           name="remark"

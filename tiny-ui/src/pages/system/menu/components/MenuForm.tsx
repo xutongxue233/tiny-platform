@@ -13,6 +13,7 @@ import type { FC, ReactElement } from 'react';
 import { cloneElement, useCallback, useState } from 'react';
 import { addMenu, getMenuTree, updateMenu } from '@/services/ant-design-pro/api';
 import IconSelect from './IconSelect';
+import { useDicts } from '@/hooks/useDict';
 
 interface MenuFormProps {
   trigger?: ReactElement;
@@ -30,6 +31,20 @@ const MenuForm: FC<MenuFormProps> = (props) => {
   const [messageApi, contextHolder] = message.useMessage();
   const [open, setOpen] = useState(false);
   const [menuType, setMenuType] = useState<string>(values?.menuType || 'M');
+
+  const { getOptions } = useDicts([
+    'sys_menu_type',
+    'sys_yes_no_01',
+    'sys_cache_status',
+    'sys_visible_status',
+    'sys_common_status',
+  ]);
+
+  const menuTypeOptions = getOptions('sys_menu_type');
+  const yesNoOptions = getOptions('sys_yes_no_01');
+  const cacheStatusOptions = getOptions('sys_cache_status');
+  const visibleStatusOptions = getOptions('sys_visible_status');
+  const statusOptions = getOptions('sys_common_status');
 
   const { run: addRun, loading: addLoading } = useRequest(addMenu, {
     manual: true,
@@ -154,20 +169,7 @@ const MenuForm: FC<MenuFormProps> = (props) => {
           name="menuType"
           label={intl.formatMessage({ id: 'pages.menu.menuType', defaultMessage: '菜单类型' })}
           colProps={{ span: 24 }}
-          options={[
-            {
-              label: intl.formatMessage({ id: 'pages.menu.menuType.directory', defaultMessage: '目录' }),
-              value: 'M',
-            },
-            {
-              label: intl.formatMessage({ id: 'pages.menu.menuType.menu', defaultMessage: '菜单' }),
-              value: 'C',
-            },
-            {
-              label: intl.formatMessage({ id: 'pages.menu.menuType.button', defaultMessage: '按钮' }),
-              value: 'F',
-            },
-          ]}
+          options={menuTypeOptions}
           fieldProps={{
             onChange: (e) => setMenuType(e.target.value),
           }}
@@ -298,16 +300,7 @@ const MenuForm: FC<MenuFormProps> = (props) => {
               name="isFrame"
               label={intl.formatMessage({ id: 'pages.menu.isFrame', defaultMessage: '是否外链' })}
               colProps={{ span: 12 }}
-              options={[
-                {
-                  label: intl.formatMessage({ id: 'pages.menu.isFrame.no', defaultMessage: '否' }),
-                  value: '0',
-                },
-                {
-                  label: intl.formatMessage({ id: 'pages.menu.isFrame.yes', defaultMessage: '是' }),
-                  value: '1',
-                },
-              ]}
+              options={yesNoOptions}
             />
 
             <ProFormRadio.Group
@@ -318,16 +311,7 @@ const MenuForm: FC<MenuFormProps> = (props) => {
                 id: 'pages.menu.isCacheTooltip',
                 defaultMessage: '选择缓存则会被keep-alive缓存',
               })}
-              options={[
-                {
-                  label: intl.formatMessage({ id: 'pages.menu.isCache.yes', defaultMessage: '缓存' }),
-                  value: '0',
-                },
-                {
-                  label: intl.formatMessage({ id: 'pages.menu.isCache.no', defaultMessage: '不缓存' }),
-                  value: '1',
-                },
-              ]}
+              options={cacheStatusOptions}
             />
           </>
         )}
@@ -340,32 +324,14 @@ const MenuForm: FC<MenuFormProps> = (props) => {
             id: 'pages.menu.visibleTooltip',
             defaultMessage: '选择隐藏则路由将不会出现在侧边栏',
           })}
-          options={[
-            {
-              label: intl.formatMessage({ id: 'pages.menu.visible.show', defaultMessage: '显示' }),
-              value: '0',
-            },
-            {
-              label: intl.formatMessage({ id: 'pages.menu.visible.hide', defaultMessage: '隐藏' }),
-              value: '1',
-            },
-          ]}
+          options={visibleStatusOptions}
         />
 
         <ProFormRadio.Group
           name="status"
           label={intl.formatMessage({ id: 'pages.menu.status', defaultMessage: '菜单状态' })}
           colProps={{ span: 12 }}
-          options={[
-            {
-              label: intl.formatMessage({ id: 'pages.menu.status.normal', defaultMessage: '正常' }),
-              value: '0',
-            },
-            {
-              label: intl.formatMessage({ id: 'pages.menu.status.disabled', defaultMessage: '停用' }),
-              value: '1',
-            },
-          ]}
+          options={statusOptions}
         />
 
         <ProFormTextArea

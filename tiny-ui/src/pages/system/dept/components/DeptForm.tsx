@@ -12,6 +12,7 @@ import { Button, message } from 'antd';
 import type { FC, ReactElement } from 'react';
 import { cloneElement, useCallback, useState } from 'react';
 import { addDept, getDeptTreeSelect, getDeptTreeExclude, updateDept } from '@/services/ant-design-pro/api';
+import { useDict } from '@/hooks/useDict';
 
 interface DeptFormProps {
   trigger?: ReactElement;
@@ -28,6 +29,8 @@ const DeptForm: FC<DeptFormProps> = (props) => {
   const intl = useIntl();
   const [messageApi, contextHolder] = message.useMessage();
   const [open, setOpen] = useState(false);
+
+  const { options: statusOptions } = useDict('sys_common_status');
 
   const { run: addRun, loading: addLoading } = useRequest(addDept, {
     manual: true,
@@ -248,16 +251,7 @@ const DeptForm: FC<DeptFormProps> = (props) => {
           name="status"
           label={intl.formatMessage({ id: 'pages.dept.status', defaultMessage: '部门状态' })}
           colProps={{ span: 12 }}
-          options={[
-            {
-              label: intl.formatMessage({ id: 'pages.dept.status.normal', defaultMessage: '正常' }),
-              value: '0',
-            },
-            {
-              label: intl.formatMessage({ id: 'pages.dept.status.disabled', defaultMessage: '停用' }),
-              value: '1',
-            },
-          ]}
+          options={statusOptions}
         />
 
         <ProFormTextArea

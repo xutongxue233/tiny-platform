@@ -1,13 +1,13 @@
 import { useAccess, useIntl, useRequest } from '@umijs/max';
-import { List, message, Modal, Popconfirm, Space, Tag, Typography } from 'antd';
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
+import { Input, List, message, Modal, Popconfirm, Space, Tag, Typography } from 'antd';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import {
   changeDictTypeStatus,
   deleteDictType,
   getDictTypeList,
 } from '@/services/ant-design-pro/dict';
 import DictTypeForm from './DictTypeForm';
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons';
 
 interface DictTypeListProps {
   selectedDictType?: API.SysDictType;
@@ -18,17 +18,18 @@ interface DictTypeListProps {
 const DictTypeList = forwardRef<{ reload: () => void }, DictTypeListProps>(
   ({ selectedDictType, onSelect, onStatusChange }, ref) => {
     const [dictTypeList, setDictTypeList] = useState<API.SysDictType[]>([]);
+    const [searchKeyword, setSearchKeyword] = useState<string>('');
     const intl = useIntl();
     const access = useAccess();
     const [messageApi, contextHolder] = message.useMessage();
 
     const { run: fetchList, loading } = useRequest(getDictTypeList, {
       manual: true,
-      onSuccess: (res) => {
-        if (res.code === 200 && res.data) {
-          setDictTypeList(res.data);
-          if (res.data.length > 0 && !selectedDictType) {
-            onSelect(res.data[0]);
+      onSuccess: (data) => {
+        if (Array.isArray(data)) {
+          setDictTypeList(data);
+          if (data.length > 0 && !selectedDictType) {
+            onSelect(data[0]);
           }
         }
       },
@@ -102,13 +103,34 @@ const DictTypeList = forwardRef<{ reload: () => void }, DictTypeListProps>(
       [deleteRun],
     );
 
+    const filteredList = useMemo(() => {
+      if (!searchKeyword.trim()) {
+        return dictTypeList;
+      }
+      const keyword = searchKeyword.toLowerCase();
+      return dictTypeList.filter(
+        (item) =>
+          item.dictName?.toLowerCase().includes(keyword) ||
+          item.dictCode?.toLowerCase().includes(keyword),
+      );
+    }, [dictTypeList, searchKeyword]);
+
     return (
       <>
         {contextHolder}
-        <List
-          loading={loading}
-          dataSource={dictTypeList}
-          renderItem={(item) => (
+        <Input
+          placeholder={intl.formatMessage({ id: 'pages.dict.searchPlaceholder', defaultMessage: '搜索字典名称/编码' })}
+          prefix={<SearchOutlined />}
+          allowClear
+          value={searchKeyword}
+          onChange={(e) => setSearchKeyword(e.target.value)}
+          style={{ marginBottom: 12 }}
+        />
+        <div style={{ height: 'calc(100vh - 330px)', overflow: 'auto' }}>
+          <List
+            loading={loading}
+            dataSource={filteredList}
+            renderItem={(item) => (
             <List.Item
               key={item.dictId}
               onClick={() => onSelect(item)}
@@ -164,6 +186,7 @@ const DictTypeList = forwardRef<{ reload: () => void }, DictTypeListProps>(
             </List.Item>
           )}
         />
+        </div>
       </>
     );
   },

@@ -16,40 +16,7 @@ import {
   type GenTable,
   type GenTableColumn,
 } from '@/services/ant-design-pro/generator';
-
-const HTML_TYPE_OPTIONS = [
-  { label: '文本框', value: 'input' },
-  { label: '文本域', value: 'textarea' },
-  { label: '下拉框', value: 'select' },
-  { label: '单选框', value: 'radio' },
-  { label: '复选框', value: 'checkbox' },
-  { label: '日期控件', value: 'datetime' },
-  { label: '图片上传', value: 'imageUpload' },
-  { label: '文件上传', value: 'fileUpload' },
-  { label: '富文本控件', value: 'editor' },
-];
-
-const QUERY_TYPE_OPTIONS = [
-  { label: '=', value: 'EQ' },
-  { label: '!=', value: 'NE' },
-  { label: '>', value: 'GT' },
-  { label: '>=', value: 'GE' },
-  { label: '<', value: 'LT' },
-  { label: '<=', value: 'LE' },
-  { label: 'LIKE', value: 'LIKE' },
-  { label: 'BETWEEN', value: 'BETWEEN' },
-];
-
-const JAVA_TYPE_OPTIONS = [
-  { label: 'Long', value: 'Long' },
-  { label: 'String', value: 'String' },
-  { label: 'Integer', value: 'Integer' },
-  { label: 'Double', value: 'Double' },
-  { label: 'BigDecimal', value: 'BigDecimal' },
-  { label: 'LocalDateTime', value: 'LocalDateTime' },
-  { label: 'LocalDate', value: 'LocalDate' },
-  { label: 'Boolean', value: 'Boolean' },
-];
+import { useDicts } from '@/hooks/useDict';
 
 const GenTableEdit: React.FC = () => {
   const { tableId } = useParams<{ tableId: string }>();
@@ -58,6 +25,20 @@ const GenTableEdit: React.FC = () => {
   const [tableData, setTableData] = useState<GenTable | null>(null);
   const [columns, setColumns] = useState<GenTableColumn[]>([]);
   const [messageApi, contextHolder] = message.useMessage();
+
+  const { getOptions } = useDicts([
+    'gen_html_type',
+    'gen_query_type',
+    'gen_java_type',
+    'gen_type',
+    'gen_fe_type',
+  ]);
+
+  const htmlTypeOptions = getOptions('gen_html_type');
+  const queryTypeOptions = getOptions('gen_query_type');
+  const javaTypeOptions = getOptions('gen_java_type');
+  const genTypeOptions = getOptions('gen_type');
+  const feTypeOptions = getOptions('gen_fe_type');
 
   useEffect(() => {
     if (tableId) {
@@ -147,7 +128,7 @@ const GenTableEdit: React.FC = () => {
         <Select
           value={text}
           onChange={(value) => handleColumnChange(index, 'javaType', value)}
-          options={JAVA_TYPE_OPTIONS}
+          options={javaTypeOptions}
           size="small"
           style={{ width: '100%' }}
         />
@@ -243,7 +224,7 @@ const GenTableEdit: React.FC = () => {
         <Select
           value={text}
           onChange={(value) => handleColumnChange(index, 'queryType', value)}
-          options={QUERY_TYPE_OPTIONS}
+          options={queryTypeOptions}
           size="small"
           style={{ width: '100%' }}
           allowClear
@@ -258,7 +239,7 @@ const GenTableEdit: React.FC = () => {
         <Select
           value={text}
           onChange={(value) => handleColumnChange(index, 'htmlType', value)}
-          options={HTML_TYPE_OPTIONS}
+          options={htmlTypeOptions}
           size="small"
           style={{ width: '100%' }}
         />
@@ -373,10 +354,7 @@ const GenTableEdit: React.FC = () => {
                   name="genType"
                   label="生成方式"
                   width="md"
-                  options={[
-                    { label: 'zip压缩包', value: '0' },
-                    { label: '自定义路径', value: '1' },
-                  ]}
+                  options={genTypeOptions}
                 />
                 <ProFormText
                   name="genPath"
@@ -390,10 +368,7 @@ const GenTableEdit: React.FC = () => {
                   name="feGenerateType"
                   label="前端生成"
                   width="md"
-                  options={[
-                    { label: '生成前端代码', value: '1' },
-                    { label: '不生成前端代码', value: '0' },
-                  ]}
+                  options={feTypeOptions}
                 />
                 <ProFormText
                   name="feModulePath"

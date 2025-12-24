@@ -14,6 +14,7 @@ import {
 } from '@/services/ant-design-pro/api';
 import OperationLogDetail from './components/OperationLogDetail';
 import dayjs from 'dayjs';
+import { useDicts } from '@/hooks/useDict';
 
 const { RangePicker } = DatePicker;
 
@@ -25,6 +26,13 @@ const OperationLogList: React.FC = () => {
 
   const intl = useIntl();
   const [messageApi, contextHolder] = message.useMessage();
+
+  const { getOptions, getValueEnum } = useDicts(['sys_operation_type', 'sys_operation_status']);
+
+  const operationTypeOptions = getOptions('sys_operation_type');
+  const operationTypeValueEnum = getValueEnum('sys_operation_type');
+  const operationStatusOptions = getOptions('sys_operation_status');
+  const operationStatusValueEnum = getValueEnum('sys_operation_status');
 
   const { run: delBatchRun, loading: delBatchLoading } = useRequest(deleteOperationLogBatch, {
     manual: true,
@@ -111,17 +119,11 @@ const OperationLogList: React.FC = () => {
       title: intl.formatMessage({ id: 'pages.operationLog.operationType', defaultMessage: '操作类型' }),
       dataIndex: 'operationType',
       width: 100,
-      valueEnum: {
-        OTHER: { text: '其他' },
-        INSERT: { text: '新增' },
-        UPDATE: { text: '修改' },
-        DELETE: { text: '删除' },
-        SELECT: { text: '查询' },
-        IMPORT: { text: '导入' },
-        EXPORT: { text: '导出' },
-        LOGIN: { text: '登录' },
-        LOGOUT: { text: '登出' },
+      valueType: 'select',
+      fieldProps: {
+        options: operationTypeOptions,
       },
+      valueEnum: operationTypeValueEnum,
     },
     {
       title: intl.formatMessage({ id: 'pages.operationLog.operationDesc', defaultMessage: '操作描述' }),
@@ -163,10 +165,11 @@ const OperationLogList: React.FC = () => {
       title: intl.formatMessage({ id: 'pages.operationLog.status', defaultMessage: '状态' }),
       dataIndex: 'status',
       width: 80,
-      valueEnum: {
-        '0': { text: intl.formatMessage({ id: 'pages.operationLog.status.success', defaultMessage: '成功' }), status: 'Success' },
-        '1': { text: intl.formatMessage({ id: 'pages.operationLog.status.fail', defaultMessage: '失败' }), status: 'Error' },
+      valueType: 'select',
+      fieldProps: {
+        options: operationStatusOptions,
       },
+      valueEnum: operationStatusValueEnum,
     },
     {
       title: intl.formatMessage({ id: 'pages.operationLog.executionTime', defaultMessage: '执行时长' }),

@@ -94,6 +94,7 @@ const DictItemTable = forwardRef<ActionType, DictItemTableProps>(
       {
         title: intl.formatMessage({ id: 'pages.dict.itemLabel', defaultMessage: '字典标签' }),
         dataIndex: 'itemLabel',
+        valueType: 'text',
       },
       {
         title: intl.formatMessage({ id: 'pages.dict.itemValue', defaultMessage: '字典值' }),
@@ -195,6 +196,7 @@ const DictItemTable = forwardRef<ActionType, DictItemTableProps>(
         <ProTable<API.SysDictItem, API.SysDictItemQueryParams>
           actionRef={actionRef}
           rowKey="itemId"
+          params={{ dictCode }}
           search={{
             labelWidth: 80,
           }}
@@ -225,10 +227,8 @@ const DictItemTable = forwardRef<ActionType, DictItemTableProps>(
             };
           }}
           columns={columns}
-          rowSelection={{
-            selections: [true],
-          }}
-          tableAlertOptionRender={({ selectedRowKeys, onCleanSelected }) => (
+          rowSelection={{}}
+          tableAlertOptionRender={({ selectedRowKeys }) => (
             <Button
               danger
               onClick={() => {

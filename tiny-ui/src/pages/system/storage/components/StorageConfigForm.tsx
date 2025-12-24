@@ -18,6 +18,8 @@ import {
   testStorageConnection,
   updateStorageConfig,
 } from '@/services/ant-design-pro/api';
+import { useDicts } from '@/hooks/useDict';
+
 interface StorageConfigFormProps {
   trigger: React.ReactNode;
   values?: API.StorageConfigVO;
@@ -37,6 +39,10 @@ const StorageConfigForm: React.FC<StorageConfigFormProps> = ({ trigger, values, 
   const [storageTypes, setStorageTypes] = useState<API.StorageTypeOption[]>(DEFAULT_STORAGE_TYPES);
   const intl = useIntl();
   const [messageApi, contextHolder] = message.useMessage();
+
+  const { getOptions } = useDicts(['sys_common_status', 'sys_storage_type']);
+
+  const statusOptions = getOptions('sys_common_status');
   // 获取存储类型列表
   useEffect(() => {
     const fetchStorageTypes = async () => {
@@ -225,10 +231,7 @@ const StorageConfigForm: React.FC<StorageConfigFormProps> = ({ trigger, values, 
                 name="status"
                 label={intl.formatMessage({ id: 'pages.storageConfig.status', defaultMessage: '状态' })}
               >
-                <Radio.Group>
-                  <Radio value="0">正常</Radio>
-                  <Radio value="1">停用</Radio>
-                </Radio.Group>
+                <Radio.Group options={statusOptions} />
               </Form.Item>
             </Col>
           </Row>

@@ -27,10 +27,10 @@ const StorageConfigList: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
 
   useRequest(getStorageTypes, {
-    onSuccess: (res) => {
-      if (res.code === 200 && res.data) {
+    onSuccess: (data) => {
+      if (Array.isArray(data)) {
         const typeMap: Record<string, string> = {};
-        res.data.forEach((item) => {
+        data.forEach((item) => {
           typeMap[item.code] = item.desc;
         });
         setStorageTypes(typeMap);

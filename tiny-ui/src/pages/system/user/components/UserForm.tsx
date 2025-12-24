@@ -8,10 +8,11 @@ import {
   ProFormTreeSelect,
 } from '@ant-design/pro-components';
 import { useIntl, useRequest } from '@umijs/max';
-import { Button, message } from 'antd';
+import { Button, message, Spin } from 'antd';
 import type { FC, ReactElement } from 'react';
 import { cloneElement, useCallback, useState } from 'react';
 import { addUser, updateUser, getUserRoles, getDeptTreeSelect } from '@/services/ant-design-pro/api';
+import { useDicts } from '@/hooks/useDict';
 
 interface UserFormProps {
   trigger?: ReactElement;
@@ -26,6 +27,11 @@ const UserForm: FC<UserFormProps> = (props) => {
   const intl = useIntl();
   const [messageApi, contextHolder] = message.useMessage();
   const [open, setOpen] = useState(false);
+
+  const { getOptions, loading: dictLoading } = useDicts(['sys_user_gender', 'sys_common_status']);
+
+  const genderOptions = getOptions('sys_user_gender');
+  const statusOptions = getOptions('sys_common_status');
 
   const { run: addRun, loading: addLoading } = useRequest(addUser, {
     manual: true,
@@ -236,35 +242,13 @@ const UserForm: FC<UserFormProps> = (props) => {
           name="gender"
           label={intl.formatMessage({ id: 'pages.user.gender', defaultMessage: '性别' })}
           colProps={{ span: 12 }}
-          options={[
-            {
-              label: intl.formatMessage({ id: 'pages.user.gender.male', defaultMessage: '男' }),
-              value: '0',
-            },
-            {
-              label: intl.formatMessage({ id: 'pages.user.gender.female', defaultMessage: '女' }),
-              value: '1',
-            },
-            {
-              label: intl.formatMessage({ id: 'pages.user.gender.unknown', defaultMessage: '未知' }),
-              value: '2',
-            },
-          ]}
+          options={genderOptions}
         />
         <ProFormRadio.Group
           name="status"
           label={intl.formatMessage({ id: 'pages.user.status', defaultMessage: '状态' })}
           colProps={{ span: 12 }}
-          options={[
-            {
-              label: intl.formatMessage({ id: 'pages.user.status.normal', defaultMessage: '正常' }),
-              value: '0',
-            },
-            {
-              label: intl.formatMessage({ id: 'pages.user.status.disabled', defaultMessage: '停用' }),
-              value: '1',
-            },
-          ]}
+          options={statusOptions}
         />
         <ProFormSelect
           name="roleIds"

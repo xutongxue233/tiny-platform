@@ -13,6 +13,7 @@ import {
   getLoginLogPage,
 } from '@/services/ant-design-pro/api';
 import dayjs from 'dayjs';
+import { useDicts } from '@/hooks/useDict';
 
 const { RangePicker } = DatePicker;
 
@@ -22,6 +23,12 @@ const LoginLogList: React.FC = () => {
 
   const intl = useIntl();
   const [messageApi, contextHolder] = message.useMessage();
+
+  const { getOptions, getValueEnum, getLabel } = useDicts(['sys_login_type', 'sys_login_status']);
+
+  const loginTypeOptions = getOptions('sys_login_type');
+  const loginStatusOptions = getOptions('sys_login_status');
+  const loginStatusValueEnum = getValueEnum('sys_login_status');
 
   const { run: delBatchRun, loading: delBatchLoading } = useRequest(deleteLoginLogBatch, {
     manual: true,
@@ -94,9 +101,9 @@ const LoginLogList: React.FC = () => {
       title: intl.formatMessage({ id: 'pages.loginLog.loginType', defaultMessage: '登录类型' }),
       dataIndex: 'loginType',
       width: 100,
-      valueEnum: {
-        login: { text: intl.formatMessage({ id: 'pages.loginLog.loginType.login', defaultMessage: '登录' }) },
-        logout: { text: intl.formatMessage({ id: 'pages.loginLog.loginType.logout', defaultMessage: '登出' }) },
+      valueType: 'select',
+      fieldProps: {
+        options: loginTypeOptions,
       },
       render: (_, record) => {
         const colorMap: Record<string, string> = {
@@ -105,7 +112,7 @@ const LoginLogList: React.FC = () => {
         };
         return (
           <Tag color={colorMap[record.loginType || ''] || 'default'}>
-            {record.loginType === 'login' ? '登录' : '登出'}
+            {getLabel('sys_login_type', record.loginType)}
           </Tag>
         );
       },
@@ -140,10 +147,11 @@ const LoginLogList: React.FC = () => {
       title: intl.formatMessage({ id: 'pages.loginLog.status', defaultMessage: '状态' }),
       dataIndex: 'status',
       width: 80,
-      valueEnum: {
-        '0': { text: intl.formatMessage({ id: 'pages.loginLog.status.success', defaultMessage: '成功' }), status: 'Success' },
-        '1': { text: intl.formatMessage({ id: 'pages.loginLog.status.fail', defaultMessage: '失败' }), status: 'Error' },
+      valueType: 'select',
+      fieldProps: {
+        options: loginStatusOptions,
       },
+      valueEnum: loginStatusValueEnum,
     },
     {
       title: intl.formatMessage({ id: 'pages.loginLog.errorMsg', defaultMessage: '错误信息' }),
