@@ -30,7 +30,7 @@
 
 ## 项目介绍
 
-Tiny Platform 是一个基于 **Spring Boot 3 + MyBatis Plus + Sa-Token + React + Ant Design Pro** 构建的模块化中后台管理系统。采用多模块设计，便于后期维护和功能扩展。
+Tiny Platform 是一个基于 **Spring Boot 3 + MyBatis Plus + Sa-Token + React + Ant Design Pro** 构建的模块化中后台管理系统。采用多模块设计，便于后期维护和功能扩展，包含独立的安全模块和存储模块，提供企业级功能支持。
 
 ## Star 趋势
 
@@ -93,21 +93,35 @@ Tiny Platform 是一个基于 **Spring Boot 3 + MyBatis Plus + Sa-Token + React 
 - 分页查询
 - 数据权限控制
 
+### 文件存储
+- 多存储后端支持（本地存储、MinIO、阿里云 OSS、AWS S3）
+- 存储配置管理
+- 文件上传下载与记录追踪
+- 统一的存储抽象层
+
 ## 项目结构
 
 ```
 tiny-platform/
-├── tiny-common/          # 公共模块
-│   ├── core/             # 核心类（BaseEntity、ResponseResult）
+├── tiny-common/          # 公共模块（注解、常量、基础实体）
+│   ├── core/             # 核心类（BaseEntity、PageDTO）
 │   ├── constant/         # 常量定义
-│   ├── exception/        # 异常处理
-│   └── config/           # 通用配置（MyBatis Plus 等）
-├── tiny-core/            # 核心模块
-│   ├── security/         # 登录用户信息
-│   ├── config/           # Sa-Token、Redis 配置
-│   └── utils/            # 工具类
+│   └── annotation/       # 自定义注解
+├── tiny-core/            # 核心模块（Web 基础设施）
+│   ├── config/           # MyBatis Plus、WebMvc 配置
+│   ├── exception/        # 全局异常处理器
+│   └── web/              # ResponseResult、WebUtil、TraceInterceptor
+├── tiny-security/        # 安全模块（认证授权）
+│   ├── config/           # Sa-Token 配置
+│   ├── aspect/           # 操作日志切面、数据权限切面
+│   ├── datascope/        # 数据权限拦截器
+│   └── context/          # 登录用户上下文
+├── tiny-storage/         # 存储模块（文件管理）
+│   ├── service/storage/  # 存储实现（本地、MinIO、OSS、S3）
+│   ├── factory/          # 存储工厂
+│   └── controller/       # 文件上传下载接口
 ├── tiny-system/          # 系统管理模块
-│   ├── entity/           # 实体类（用户、角色、菜单等）
+│   ├── entity/           # 实体类（用户、角色、菜单、部门等）
 │   ├── mapper/           # 数据访问层
 │   ├── service/          # 业务逻辑层
 │   ├── controller/       # 控制器层
@@ -123,6 +137,8 @@ tiny-platform/
 └── docs/                 # 文档
     └── init.sql          # 数据库初始化脚本
 ```
+
+**模块依赖关系**: tiny-admin -> tiny-system -> tiny-storage -> tiny-security -> tiny-core -> tiny-common
 
 ## 快速开始
 
@@ -213,6 +229,14 @@ npm run dev
 | GET | /sys/operationLog/page | 操作日志分页查询 |
 | GET | /sys/loginLog/page | 登录日志分页查询 |
 
+### 文件存储
+| 方法 | 接口 | 说明 |
+|-----|------|-----|
+| POST | /storage/file/upload | 文件上传 |
+| GET | /storage/file/download/{id} | 文件下载 |
+| GET | /storage/config/page | 存储配置列表 |
+| POST | /storage/config | 创建存储配置 |
+
 ## 模块扩展
 
 系统采用模块化设计，后期可以方便地添加新模块：
@@ -226,15 +250,16 @@ npm run dev
 
 1. **模块化设计** - 清晰的模块划分，便于维护和扩展
 2. **技术栈先进** - 使用最新版本的 Spring Boot 3、JDK 21、React 19
-3. **安全优先** - BCrypt 密码加密，Redis Token 存储
-4. **开发友好** - 完善的 API 文档，丰富的工具库
+3. **安全优先** - BCrypt 密码加密，Redis Token 存储，数据权限控制
+4. **开发友好** - 完善的 API 文档，丰富的工具库，参数校验
 5. **生产就绪** - 日志系统、监控支持、支持分布式部署
+6. **灵活存储** - 基于工厂模式的可插拔存储后端
 
 ## 后续规划
 
+- [x] 文件管理模块
 - [ ] 代码生成器
 - [ ] 定时任务模块
-- [ ] 文件管理模块
 - [ ] 数据字典模块
 - [ ] 工作流引擎
 

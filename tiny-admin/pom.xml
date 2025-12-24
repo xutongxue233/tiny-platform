@@ -24,6 +24,12 @@
             <artifactId>tiny-system</artifactId>
         </dependency>
 
+        <!-- Storage模块 -->
+        <dependency>
+            <groupId>com.tiny</groupId>
+            <artifactId>tiny-storage</artifactId>
+        </dependency>
+
         <!-- MySQL -->
         <dependency>
             <groupId>com.mysql</groupId>
@@ -41,8 +47,7 @@
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
-        </dependency>
-    </dependencies>
+        </dependency>    </dependencies>
 
     <build>
         <plugins>

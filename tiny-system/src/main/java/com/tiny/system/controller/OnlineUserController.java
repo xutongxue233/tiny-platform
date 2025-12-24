@@ -1,7 +1,7 @@
 package com.tiny.system.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import com.tiny.common.core.domain.ResponseResult;
+import com.tiny.core.web.ResponseResult;
 import com.tiny.common.core.page.PageResult;
 import com.tiny.system.dto.OnlineUserQueryDTO;
 import com.tiny.system.service.OnlineUserService;

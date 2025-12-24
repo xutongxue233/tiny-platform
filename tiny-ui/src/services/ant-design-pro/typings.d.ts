@@ -394,4 +394,99 @@ declare namespace API {
     username?: string;
     ipAddr?: string;
   };
+
+  /** 存储类型枚举 */
+  type StorageType = 'local' | 'aliyun_oss' | 'minio' | 'aws_s3';
+
+  /** 存储配置VO */
+  type StorageConfigVO = {
+    configId?: number;
+    configName?: string;
+    storageType?: string;
+    storageTypeDesc?: string;
+    isDefault?: string;
+    status?: string;
+    endpoint?: string;
+    bucketName?: string;
+    domain?: string;
+    region?: string;
+    localPath?: string;
+    localUrlPrefix?: string;
+    useHttps?: string;
+    remark?: string;
+    createTime?: string;
+    updateTime?: string;
+  };
+
+  /** 存储配置DTO */
+  type StorageConfigDTO = {
+    configId?: number;
+    configName?: string;
+    storageType?: string;
+    isDefault?: string;
+    status?: string;
+    endpoint?: string;
+    bucketName?: string;
+    accessKeyId?: string;
+    accessKeySecret?: string;
+    domain?: string;
+    region?: string;
+    localPath?: string;
+    localUrlPrefix?: string;
+    useHttps?: string;
+    remark?: string;
+  };
+
+  /** 存储配置查询参数 */
+  type StorageConfigQueryParams = {
+    current?: number;
+    size?: number;
+    configName?: string;
+    storageType?: string;
+    status?: string;
+  };
+
+  /** 存储类型选项 */
+  type StorageTypeOption = {
+    code: string;
+    desc: string;
+  };
+
+  /** 文件信息 */
+  type FileInfo = {
+    fileId?: number;
+    originalFilename?: string;
+    storedFilename?: string;
+    filePath?: string;
+    fileUrl?: string;
+    fileSize?: number;
+    fileSizeDesc?: string;
+    fileType?: string;
+    fileExt?: string;
+    storageType?: string;
+    createTime?: string;
+  };
+
+  /** 文件查询参数 */
+  type FileQueryParams = {
+    current?: number;
+    size?: number;
+    originalFilename?: string;
+    fileType?: string;
+    storageType?: string;
+  };
+
+  /** 文件上传响应 */
+  type FileUploadResult = {
+    fileId: number;
+    originalFilename: string;
+    storedFilename: string;
+    filePath: string;
+    fileUrl: string;
+    fileSize: number;
+    fileSizeDesc: string;
+    fileType: string;
+    fileExt: string;
+    storageType: string;
+  };
 }

@@ -23,6 +23,8 @@
     <modules>
         <module>tiny-common</module>
         <module>tiny-core</module>
+        <module>tiny-security</module>
+        <module>tiny-storage</module>
         <module>tiny-system</module>
         <module>tiny-admin</module>
     </modules>
@@ -42,6 +44,11 @@
         <knife4j.version>4.4.0</knife4j.version>
         <druid.version>1.2.27</druid.version>
         <ip2region.version>3.3.1</ip2region.version>
+        <swagger-annotations.version>2.2.15</swagger-annotations.version>
+        <aliyun-oss.version>3.17.4</aliyun-oss.version>
+        <minio.version>8.5.7</minio.version>
+        <aws-s3.version>2.25.0</aws-s3.version>
+        <tencent-cos.version>5.6.227</tencent-cos.version>
     </properties>
 
     <dependencyManagement>
@@ -59,7 +66,17 @@
             </dependency>
             <dependency>
                 <groupId>com.tiny</groupId>
+                <artifactId>tiny-security</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.tiny</groupId>
                 <artifactId>tiny-system</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.tiny</groupId>
+                <artifactId>tiny-storage</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -136,6 +153,41 @@
                 <groupId>org.lionsoul</groupId>
                 <artifactId>ip2region</artifactId>
                 <version>${ip2region.version}</version>
+            </dependency>
+
+            <!-- Swagger注解 -->
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-annotations-jakarta</artifactId>
+                <version>${swagger-annotations.version}</version>
+            </dependency>
+
+            <!-- Aliyun OSS -->
+            <dependency>
+                <groupId>com.aliyun.oss</groupId>
+                <artifactId>aliyun-sdk-oss</artifactId>
+                <version>${aliyun-oss.version}</version>
+            </dependency>
+
+            <!-- MinIO -->
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
+            </dependency>
+
+            <!-- AWS S3 -->
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>s3</artifactId>
+                <version>${aws-s3.version}</version>
+            </dependency>
+
+            <!-- Tencent COS -->
+            <dependency>
+                <groupId>com.qcloud</groupId>
+                <artifactId>cos_api</artifactId>
+                <version>${tencent-cos.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

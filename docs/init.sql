@@ -230,3 +230,86 @@ CREATE TABLE sys_operation_log (
     KEY idx_username (username),
     KEY idx_operation_time (operation_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='操作日志表';
+
+-- ----------------------------
+-- 存储配置表
+-- ----------------------------
+CREATE TABLE sys_storage_config (
+    config_id BIGINT AUTO_INCREMENT COMMENT '配置ID',
+    config_name VARCHAR(100) NOT NULL COMMENT '配置名称',
+    storage_type VARCHAR(32) NOT NULL COMMENT '存储类型(local/aliyun_oss/minio/aws_s3)',
+    is_default CHAR(1) DEFAULT '0' COMMENT '是否默认(0否 1是)',
+    status CHAR(1) DEFAULT '0' COMMENT '状态(0正常 1停用)',
+    endpoint VARCHAR(255) COMMENT 'Endpoint',
+    bucket_name VARCHAR(100) COMMENT '存储桶名称',
+    access_key_id VARCHAR(255) COMMENT 'Access Key ID',
+    access_key_secret VARCHAR(255) COMMENT 'Access Key Secret',
+    domain VARCHAR(255) COMMENT '自定义域名',
+    region VARCHAR(64) COMMENT '区域',
+    local_path VARCHAR(500) COMMENT '本地存储路径',
+    local_url_prefix VARCHAR(255) COMMENT '本地存储URL前缀',
+    use_https CHAR(1) DEFAULT '1' COMMENT '是否使用HTTPS(0否 1是)',
+    create_by VARCHAR(64) DEFAULT '' COMMENT '创建者',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_by VARCHAR(64) DEFAULT '' COMMENT '更新者',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    del_flag CHAR(1) DEFAULT '0' COMMENT '删除标志(0正常 1删除)',
+    remark VARCHAR(500) COMMENT '备注',
+    PRIMARY KEY (config_id),
+    KEY idx_storage_type (storage_type),
+    KEY idx_is_default (is_default)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='存储配置表';
+
+-- ----------------------------
+-- 文件记录表
+-- ----------------------------
+CREATE TABLE sys_file_record (
+    file_id BIGINT AUTO_INCREMENT COMMENT '文件ID',
+    config_id BIGINT COMMENT '存储配置ID',
+    original_filename VARCHAR(255) COMMENT '原始文件名',
+    stored_filename VARCHAR(255) COMMENT '存储文件名',
+    file_path VARCHAR(500) COMMENT '文件路径',
+    file_size BIGINT COMMENT '文件大小(字节)',
+    file_type VARCHAR(100) COMMENT '文件类型',
+    file_ext VARCHAR(32) COMMENT '文件扩展名',
+    storage_type VARCHAR(32) COMMENT '存储类型',
+    file_url VARCHAR(1000) COMMENT '文件URL',
+    file_md5 VARCHAR(64) COMMENT '文件MD5',
+    create_by VARCHAR(64) DEFAULT '' COMMENT '创建者',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_by VARCHAR(64) DEFAULT '' COMMENT '更新者',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    del_flag CHAR(1) DEFAULT '0' COMMENT '删除标志(0正常 1删除)',
+    remark VARCHAR(500) COMMENT '备注',
+    PRIMARY KEY (file_id),
+    KEY idx_config_id (config_id),
+    KEY idx_storage_type (storage_type),
+    KEY idx_file_md5 (file_md5),
+    KEY idx_create_time (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='文件记录表';
+
+-- ----------------------------
+-- 初始化本地存储配置
+-- ----------------------------
+INSERT INTO sys_storage_config (config_name, storage_type, is_default, status, local_path, local_url_prefix, remark)
+VALUES ('本地存储', 'local', '1', '0', '/data/upload', '/api/static', '默认本地存储配置');
+
+-- ----------------------------
+-- 存储管理菜单
+-- ----------------------------
+INSERT INTO sys_menu (menu_name, parent_id, sort, path, component, menu_type, visible, status, perms, icon) VALUES
+('存储管理', 0, 3, '/storage', NULL, 'M', '0', '0', NULL, 'CloudServerOutlined'),
+('存储配置', 35, 1, '/storage/config', 'storage/config/index', 'C', '0', '0', 'storage:config:list', 'SettingOutlined'),
+('配置查询', 36, 1, NULL, NULL, 'F', '0', '0', 'storage:config:query', NULL),
+('配置新增', 36, 2, NULL, NULL, 'F', '0', '0', 'storage:config:add', NULL),
+('配置修改', 36, 3, NULL, NULL, 'F', '0', '0', 'storage:config:edit', NULL),
+('配置删除', 36, 4, NULL, NULL, 'F', '0', '0', 'storage:config:delete', NULL),
+('文件管理', 35, 2, '/storage/file', 'storage/file/index', 'C', '0', '0', 'storage:file:list', 'FolderOutlined'),
+('文件查询', 41, 1, NULL, NULL, 'F', '0', '0', 'storage:file:query', NULL),
+('文件上传', 41, 2, NULL, NULL, 'F', '0', '0', 'storage:file:upload', NULL),
+('文件下载', 41, 3, NULL, NULL, 'F', '0', '0', 'storage:file:download', NULL),
+('文件删除', 41, 4, NULL, NULL, 'F', '0', '0', 'storage:file:delete', NULL);
+
+-- 关联存储管理菜单权限到超级管理员
+INSERT INTO sys_role_menu (role_id, menu_id)
+SELECT 1, menu_id FROM sys_menu WHERE menu_id >= 35;

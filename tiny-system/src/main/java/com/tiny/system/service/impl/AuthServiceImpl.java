@@ -11,9 +11,10 @@ import com.tiny.common.enums.DataScopeEnum;
 import com.tiny.common.enums.LoginTypeEnum;
 import com.tiny.common.enums.StatusEnum;
 import com.tiny.common.exception.BusinessException;
-import com.tiny.common.utils.WebUtil;
-import com.tiny.core.security.LoginUser;
-import com.tiny.core.utils.LoginUserUtil;
+import com.tiny.core.web.WebUtil;
+import com.tiny.security.context.LoginUser;
+import com.tiny.security.service.LoginProtectionService;
+import com.tiny.security.utils.LoginUserUtil;
 import com.tiny.system.dto.LoginDTO;
 import com.tiny.system.entity.*;
 import com.tiny.system.mapper.*;
@@ -44,6 +45,7 @@ public class AuthServiceImpl implements AuthService {
     private final SysRoleMenuMapper roleMenuMapper;
     private final SysRoleDeptMapper roleDeptMapper;
     private final SysLoginLogService loginLogService;
+    private final LoginProtectionService loginProtectionService;
 
     @Override
     public LoginVO login(LoginDTO loginDTO) {
@@ -53,20 +55,38 @@ public class AuthServiceImpl implements AuthService {
         String ipAddr = WebUtil.getIpAddr();
         String userAgent = WebUtil.getUserAgent();
 
+        // 检查账号是否被锁定
+        if (loginProtectionService.isLocked(username)) {
+            long remainSeconds = loginProtectionService.getLockRemainSeconds(username);
+            String msg = "账号已被锁定，请" + formatDisableTime(remainSeconds) + "后重试";
+            loginLogService.recordLoginLog(username, null, LoginTypeEnum.LOGIN.getCode(), StatusEnum.DISABLE.getCode(), msg, ipAddr, userAgent);
+            throw new BusinessException(msg);
+        }
+
         // 查询用户
         SysUser user = userMapper.selectOne(
                 Wrappers.<SysUser>lambdaQuery().eq(SysUser::getUsername, username)
         );
 
         if (user == null) {
-            loginLogService.recordLoginLog(username, null, LoginTypeEnum.LOGIN.getCode(), StatusEnum.DISABLE.getCode(), CommonConstants.LOGIN_ERROR, ipAddr, userAgent);
-            throw new BusinessException(CommonConstants.LOGIN_ERROR);
+            int failCount = loginProtectionService.recordFailure(username);
+            int remainAttempts = loginProtectionService.getRemainAttempts(username);
+            String msg = remainAttempts > 0
+                    ? CommonConstants.LOGIN_ERROR + "，剩余尝试次数：" + remainAttempts
+                    : "账号已被锁定，请15分钟后重试";
+            loginLogService.recordLoginLog(username, null, LoginTypeEnum.LOGIN.getCode(), StatusEnum.DISABLE.getCode(), msg, ipAddr, userAgent);
+            throw new BusinessException(msg);
         }
 
         // 验证密码
         if (!BCrypt.checkpw(loginDTO.getPassword(), user.getPassword())) {
-            loginLogService.recordLoginLog(username, user.getUserId(), LoginTypeEnum.LOGIN.getCode(), StatusEnum.DISABLE.getCode(), CommonConstants.LOGIN_ERROR, ipAddr, userAgent);
-            throw new BusinessException(CommonConstants.LOGIN_ERROR);
+            int failCount = loginProtectionService.recordFailure(username);
+            int remainAttempts = loginProtectionService.getRemainAttempts(username);
+            String msg = remainAttempts > 0
+                    ? CommonConstants.LOGIN_ERROR + "，剩余尝试次数：" + remainAttempts
+                    : "账号已被锁定，请15分钟后重试";
+            loginLogService.recordLoginLog(username, user.getUserId(), LoginTypeEnum.LOGIN.getCode(), StatusEnum.DISABLE.getCode(), msg, ipAddr, userAgent);
+            throw new BusinessException(msg);
         }
 
         // 检查用户状态
@@ -141,6 +161,9 @@ public class AuthServiceImpl implements AuthService {
 
         // 登录
         StpUtil.login(user.getUserId());
+
+        // 登录成功，清除失败计数
+        loginProtectionService.clearFailCount(username);
 
         // 保存登录用户信息
         LoginUser loginUser = BeanUtil.copyProperties(user, LoginUser.class);

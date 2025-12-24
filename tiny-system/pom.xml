@@ -18,16 +18,10 @@
     <description>系统管理模块：用户、角色、菜单、权限管理</description>
 
     <dependencies>
-        <!-- Core模块 -->
+        <!-- Security模块 -->
         <dependency>
             <groupId>com.tiny</groupId>
-            <artifactId>tiny-core</artifactId>
-        </dependency>
-
-        <!-- Spring AOP -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
+            <artifactId>tiny-security</artifactId>
         </dependency>
 
         <!-- Knife4j -->

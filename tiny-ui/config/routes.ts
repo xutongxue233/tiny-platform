@@ -70,6 +70,28 @@ export default [
         path: '/system/dept',
         component: './system/dept/index',
       },
+      {
+        path: '/system/storage',
+        component: './system/storage/index',
+      },
+    ],
+  },
+  {
+    path: '/storage',
+    hideInMenu: true,
+    routes: [
+      {
+        path: '/storage',
+        redirect: '/storage/file',
+      },
+      {
+        path: '/storage/file',
+        component: './storage/file/index',
+      },
+      {
+        path: '/storage/config',
+        component: './system/storage/index',
+      },
     ],
   },
   {

@@ -1,6 +1,6 @@
 package com.tiny.system.controller;
 
-import com.tiny.common.core.domain.ResponseResult;
+import com.tiny.core.web.ResponseResult;
 import com.tiny.system.dto.LoginDTO;
 import com.tiny.system.service.AuthService;
 import com.tiny.system.vo.LoginVO;

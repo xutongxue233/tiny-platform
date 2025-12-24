@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tiny.common.constant.CommonConstants;
 import com.tiny.common.core.page.PageResult;
 import com.tiny.common.exception.BusinessException;
-import com.tiny.core.security.LoginUser;
+import com.tiny.security.context.LoginUser;
 import com.tiny.system.dto.OnlineUserQueryDTO;
 import com.tiny.system.entity.SysDept;
 import com.tiny.system.entity.SysUser;

@@ -4,7 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaMode;
 import com.tiny.common.annotation.OperationLog;
 import com.tiny.common.annotation.OperationLog.OperationType;
-import com.tiny.common.core.domain.ResponseResult;
+import com.tiny.core.web.ResponseResult;
 import com.tiny.system.dto.SysDeptDTO;
 import com.tiny.system.dto.SysDeptQueryDTO;
 import com.tiny.system.dto.UpdateStatusDTO;

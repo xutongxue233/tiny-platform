@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tiny.common.enums.StatusEnum;
 import com.tiny.common.exception.BusinessException;
-import com.tiny.core.utils.LoginUserUtil;
+import com.tiny.security.utils.LoginUserUtil;
 import com.tiny.system.dto.SysMenuDTO;
 import com.tiny.system.dto.SysMenuQueryDTO;
 import com.tiny.system.entity.SysMenu;
