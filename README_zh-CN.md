@@ -81,6 +81,7 @@ Tiny Platform 是一个基于 **Spring Boot 3 + MyBatis Plus + Sa-Token + React 
 - 角色管理（角色分配、权限配置）
 - 菜单管理（树形结构、路由配置、按钮权限）
 - 部门管理（树形结构、数据权限）
+- 数据字典（字典类型与字典项管理、缓存支持）
 
 ### 日志系统
 - 操作日志（基于 AOP 切面自动记录，支持注解配置）
@@ -98,6 +99,12 @@ Tiny Platform 是一个基于 **Spring Boot 3 + MyBatis Plus + Sa-Token + React 
 - 存储配置管理
 - 文件上传下载与记录追踪
 - 统一的存储抽象层
+
+### 开发工具
+- 代码生成器（表导入、代码预览、批量生成）
+- 可自定义代码模板（Entity、Mapper、Service、Controller、DTO、VO）
+- 前端代码生成（React 页面、API 服务）
+- 生成器配置管理
 
 ## 项目结构
 
@@ -121,12 +128,17 @@ tiny-platform/
 │   ├── factory/          # 存储工厂
 │   └── controller/       # 文件上传下载接口
 ├── tiny-system/          # 系统管理模块
-│   ├── entity/           # 实体类（用户、角色、菜单、部门等）
+│   ├── entity/           # 实体类（用户、角色、菜单、部门、字典等）
 │   ├── mapper/           # 数据访问层
 │   ├── service/          # 业务逻辑层
 │   ├── controller/       # 控制器层
 │   ├── dto/              # 数据传输对象
 │   └── vo/               # 视图对象
+├── tiny-generator/       # 代码生成器模块
+│   ├── core/             # 生成器核心（模板引擎、规则链、代码写入器）
+│   ├── entity/           # 生成器实体（GenTable、GenTableColumn）
+│   ├── service/          # 生成器服务
+│   └── controller/       # 生成器接口
 ├── tiny-admin/           # 主启动模块
 │   ├── TinyAdminApplication
 │   └── application.yml
@@ -138,7 +150,7 @@ tiny-platform/
     └── init.sql          # 数据库初始化脚本
 ```
 
-**模块依赖关系**: tiny-admin -> tiny-system -> tiny-storage -> tiny-security -> tiny-core -> tiny-common
+**模块依赖关系**: tiny-admin -> tiny-system -> tiny-generator -> tiny-storage -> tiny-security -> tiny-core -> tiny-common
 
 ## 快速开始
 
@@ -237,6 +249,25 @@ npm run dev
 | GET | /storage/config/page | 存储配置列表 |
 | POST | /storage/config | 创建存储配置 |
 
+### 数据字典
+| 方法 | 接口 | 说明 |
+|-----|------|-----|
+| GET | /sys/dictType/page | 字典类型分页查询 |
+| GET | /sys/dictType/list | 字典类型列表 |
+| GET | /sys/dictItem/list | 根据类型获取字典项列表 |
+| POST | /sys/dictType | 创建字典类型 |
+| POST | /sys/dictItem | 创建字典项 |
+
+### 代码生成器
+| 方法 | 接口 | 说明 |
+|-----|------|-----|
+| GET | /gen/table/page | 生成器表分页查询 |
+| GET | /gen/table/db/list | 数据库表列表 |
+| POST | /gen/table/import | 导入数据库表 |
+| GET | /gen/table/preview/{tableId} | 预览生成代码 |
+| GET | /gen/table/download/{tableId} | 下载生成代码 |
+| POST | /gen/table/batchGenerate | 批量生成代码 |
+
 ## 模块扩展
 
 系统采用模块化设计，后期可以方便地添加新模块：
@@ -257,10 +288,7 @@ npm run dev
 
 ## 后续规划
 
-- [x] 文件管理模块
-- [ ] 代码生成器
 - [ ] 定时任务模块
-- [ ] 数据字典模块
 - [ ] 工作流引擎
 
 ## 参与贡献

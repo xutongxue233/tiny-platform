@@ -81,6 +81,7 @@ Tiny Platform is a modular backend management system built with **Spring Boot 3 
 - Role Management (role assignment, permission configuration)
 - Menu Management (tree structure, routing, button permissions)
 - Department Management (tree structure, data permission)
+- Data Dictionary (dictionary type and item management, cache support)
 
 ### Logging System
 - Operation Logs (auto-record via AOP, annotation-based)
@@ -98,6 +99,12 @@ Tiny Platform is a modular backend management system built with **Spring Boot 3 
 - Storage configuration management
 - File upload/download with record tracking
 - Unified storage abstraction layer
+
+### Development Tools
+- Code Generator (table import, code preview, batch generation)
+- Customizable code templates (Entity, Mapper, Service, Controller, DTO, VO)
+- Frontend code generation (React pages, API services)
+- Generator configuration management
 
 ## Project Structure
 
@@ -121,12 +128,17 @@ tiny-platform/
 │   ├── factory/          # Storage factory
 │   └── controller/       # File upload/download APIs
 ├── tiny-system/          # System management module
-│   ├── entity/           # Entities (User, Role, Menu, Dept, etc.)
+│   ├── entity/           # Entities (User, Role, Menu, Dept, Dict, etc.)
 │   ├── mapper/           # Data access layer
 │   ├── service/          # Business logic layer
 │   ├── controller/       # Controllers
 │   ├── dto/              # Data transfer objects
 │   └── vo/               # View objects
+├── tiny-generator/       # Code generator module
+│   ├── core/             # Generator core (template engine, rules, writer)
+│   ├── entity/           # Generator entities (GenTable, GenTableColumn)
+│   ├── service/          # Generator services
+│   └── controller/       # Generator APIs
 ├── tiny-admin/           # Main startup module
 │   ├── TinyAdminApplication
 │   └── application.yml
@@ -138,7 +150,7 @@ tiny-platform/
     └── init.sql          # Database init script
 ```
 
-**Module Dependencies**: tiny-admin -> tiny-system -> tiny-storage -> tiny-security -> tiny-core -> tiny-common
+**Module Dependencies**: tiny-admin -> tiny-system -> tiny-generator -> tiny-storage -> tiny-security -> tiny-core -> tiny-common
 
 ## Quick Start
 
@@ -237,6 +249,25 @@ npm run dev
 | GET | /storage/config/page | Storage config list |
 | POST | /storage/config | Create storage config |
 
+### Data Dictionary
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /sys/dictType/page | Dictionary type pagination |
+| GET | /sys/dictType/list | Dictionary type list |
+| GET | /sys/dictItem/list | Dictionary item list by type |
+| POST | /sys/dictType | Create dictionary type |
+| POST | /sys/dictItem | Create dictionary item |
+
+### Code Generator
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /gen/table/page | Generator table pagination |
+| GET | /gen/table/db/list | Database table list |
+| POST | /gen/table/import | Import database tables |
+| GET | /gen/table/preview/{tableId} | Preview generated code |
+| GET | /gen/table/download/{tableId} | Download generated code |
+| POST | /gen/table/batchGenerate | Batch generate code |
+
 ## Extension Guide
 
 The system uses modular design for easy extension:
@@ -257,10 +288,7 @@ The system uses modular design for easy extension:
 
 ## Roadmap
 
-- [x] File Management Module
-- [ ] Code Generator
 - [ ] Scheduled Tasks Module
-- [ ] Data Dictionary Module
 - [ ] Workflow Engine
 
 ## Contributing
