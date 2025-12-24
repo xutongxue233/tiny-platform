@@ -489,4 +489,70 @@ declare namespace API {
     fileExt: string;
     storageType: string;
   };
+
+  /** 字典类型 */
+  type SysDictType = {
+    dictId?: number;
+    dictName?: string;
+    dictCode?: string;
+    status?: string;
+    remark?: string;
+    createTime?: string;
+  };
+
+  /** 字典类型DTO */
+  type SysDictTypeDTO = {
+    dictId?: number;
+    dictName: string;
+    dictCode: string;
+    status?: string;
+    remark?: string;
+  };
+
+  /** 字典类型查询参数 */
+  type SysDictTypeQueryParams = {
+    current?: number;
+    size?: number;
+    dictName?: string;
+    dictCode?: string;
+    status?: string;
+  };
+
+  /** 字典项 */
+  type SysDictItem = {
+    itemId?: number;
+    dictCode?: string;
+    itemLabel?: string;
+    itemValue?: string;
+    itemSort?: number;
+    cssClass?: string;
+    listClass?: string;
+    isDefault?: string;
+    status?: string;
+    remark?: string;
+    createTime?: string;
+  };
+
+  /** 字典项DTO */
+  type SysDictItemDTO = {
+    itemId?: number;
+    dictCode: string;
+    itemLabel: string;
+    itemValue: string;
+    itemSort?: number;
+    cssClass?: string;
+    listClass?: string;
+    isDefault?: string;
+    status?: string;
+    remark?: string;
+  };
+
+  /** 字典项查询参数 */
+  type SysDictItemQueryParams = {
+    current?: number;
+    size?: number;
+    dictCode?: string;
+    itemLabel?: string;
+    status?: string;
+  };
 }

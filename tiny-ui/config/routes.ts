@@ -74,6 +74,10 @@ export default [
         path: '/system/storage',
         component: './system/storage/index',
       },
+      {
+        path: '/system/dict',
+        component: './system/dict/index',
+      },
     ],
   },
   {
@@ -113,6 +117,28 @@ export default [
       {
         path: '/monitor/onlineUser',
         component: './monitor/onlineUser/index',
+      },
+    ],
+  },
+  {
+    path: '/tool',
+    hideInMenu: true,
+    routes: [
+      {
+        path: '/tool',
+        redirect: '/tool/gen',
+      },
+      {
+        path: '/tool/gen',
+        component: './tool/gen/index',
+      },
+      {
+        path: '/tool/gen/edit/:tableId',
+        component: './tool/gen/edit',
+      },
+      {
+        path: '/tool/genConfig',
+        component: './tool/genConfig/index',
       },
     ],
   },

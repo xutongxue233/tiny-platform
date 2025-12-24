@@ -30,7 +30,9 @@ public class SaTokenConfig implements WebMvcConfigurer {
                         "/webjars/**",
                         "/favicon.ico",
                         // Druid 监控
-                        "/druid/**"
+                        "/druid/**",
+                        // 字典数据公共接口
+                        "/dict/**"
                 );
     }
 }
