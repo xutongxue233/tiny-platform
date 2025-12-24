@@ -25,6 +25,7 @@
         <module>tiny-core</module>
         <module>tiny-security</module>
         <module>tiny-storage</module>
+        <module>tiny-generator</module>
         <module>tiny-system</module>
         <module>tiny-admin</module>
     </modules>
@@ -77,6 +78,11 @@
             <dependency>
                 <groupId>com.tiny</groupId>
                 <artifactId>tiny-storage</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.tiny</groupId>
+                <artifactId>tiny-generator</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

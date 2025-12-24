@@ -221,15 +221,7 @@ const LoginLogList: React.FC = () => {
         }}
       />
       {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              {intl.formatMessage({ id: 'pages.loginLog.selected', defaultMessage: '已选择' })}{' '}
-              <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
-              {intl.formatMessage({ id: 'pages.loginLog.item', defaultMessage: '项' })}
-            </div>
-          }
-        >
+        <FooterToolbar>
           <Button
             danger
             loading={delBatchLoading}

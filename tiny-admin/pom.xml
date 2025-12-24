@@ -30,6 +30,12 @@
             <artifactId>tiny-storage</artifactId>
         </dependency>
 
+        <!-- Generator模块 -->
+        <dependency>
+            <groupId>com.tiny</groupId>
+            <artifactId>tiny-generator</artifactId>
+        </dependency>
+
         <!-- MySQL -->
         <dependency>
             <groupId>com.mysql</groupId>

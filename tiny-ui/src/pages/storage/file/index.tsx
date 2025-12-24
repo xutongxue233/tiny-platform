@@ -478,15 +478,7 @@ const FileList: React.FC = () => {
       )}
 
       {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              {intl.formatMessage({ id: 'pages.file.selected', defaultMessage: '已选择' })}{' '}
-              <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
-              {intl.formatMessage({ id: 'pages.file.item', defaultMessage: '项' })}
-            </div>
-          }
-        >
+        <FooterToolbar>
           <Button danger loading={delBatchLoading} onClick={() => handleBatchRemove(selectedRowsState)}>
             {intl.formatMessage({ id: 'pages.file.batchDelete', defaultMessage: '批量删除' })}
           </Button>
