@@ -30,7 +30,7 @@
 
 ## Introduction
 
-Tiny Platform is a modular backend management system built with **Spring Boot 3 + MyBatis Plus + Sa-Token + React + Ant Design Pro**. It features a multi-module architecture designed for easy maintenance and extensibility.
+Tiny Platform is a modular backend management system built with **Spring Boot 3 + MyBatis Plus + Sa-Token + React + Ant Design Pro**. It features a multi-module architecture designed for easy maintenance and extensibility, with dedicated security and storage modules for enterprise-level functionality.
 
 ## Star History
 
@@ -93,21 +93,35 @@ Tiny Platform is a modular backend management system built with **Spring Boot 3 
 - Pagination support
 - Data permission control
 
+### File Storage
+- Multi-storage backend support (Local, MinIO, Aliyun OSS, AWS S3)
+- Storage configuration management
+- File upload/download with record tracking
+- Unified storage abstraction layer
+
 ## Project Structure
 
 ```
 tiny-platform/
-├── tiny-common/          # Common module
-│   ├── core/             # Core classes (BaseEntity, ResponseResult)
+├── tiny-common/          # Common module (annotations, constants, base entity)
+│   ├── core/             # Core classes (BaseEntity, PageDTO)
 │   ├── constant/         # Constants
-│   ├── exception/        # Exception handling
-│   └── config/           # Common configs (MyBatis Plus, etc.)
-├── tiny-core/            # Core module
-│   ├── security/         # Login user info
-│   ├── config/           # Sa-Token, Redis config
-│   └── utils/            # Utility classes
+│   └── annotation/       # Custom annotations
+├── tiny-core/            # Core module (web infrastructure)
+│   ├── config/           # MyBatis Plus, WebMvc config
+│   ├── exception/        # Global exception handler
+│   └── web/              # ResponseResult, WebUtil, TraceInterceptor
+├── tiny-security/        # Security module (authentication & authorization)
+│   ├── config/           # Sa-Token config
+│   ├── aspect/           # Operation log aspect, Data scope aspect
+│   ├── datascope/        # Data permission interceptor
+│   └── context/          # Login user context
+├── tiny-storage/         # Storage module (file management)
+│   ├── service/storage/  # Storage implementations (Local, MinIO, OSS, S3)
+│   ├── factory/          # Storage factory
+│   └── controller/       # File upload/download APIs
 ├── tiny-system/          # System management module
-│   ├── entity/           # Entities (User, Role, Menu, etc.)
+│   ├── entity/           # Entities (User, Role, Menu, Dept, etc.)
 │   ├── mapper/           # Data access layer
 │   ├── service/          # Business logic layer
 │   ├── controller/       # Controllers
@@ -123,6 +137,8 @@ tiny-platform/
 └── docs/                 # Documentation
     └── init.sql          # Database init script
 ```
+
+**Module Dependencies**: tiny-admin -> tiny-system -> tiny-storage -> tiny-security -> tiny-core -> tiny-common
 
 ## Quick Start
 
@@ -213,6 +229,14 @@ npm run dev
 | GET | /sys/operationLog/page | Operation logs |
 | GET | /sys/loginLog/page | Login logs |
 
+### File Storage
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /storage/file/upload | Upload file |
+| GET | /storage/file/download/{id} | Download file |
+| GET | /storage/config/page | Storage config list |
+| POST | /storage/config | Create storage config |
+
 ## Extension Guide
 
 The system uses modular design for easy extension:
@@ -226,15 +250,16 @@ The system uses modular design for easy extension:
 
 1. **Modular Design** - Clear module separation for maintainability
 2. **Modern Stack** - Latest versions of Spring Boot 3, JDK 21, React 19
-3. **Security First** - BCrypt password encryption, Redis token storage
-4. **Developer Friendly** - Comprehensive API docs, utility libraries
+3. **Security First** - BCrypt password encryption, Redis token storage, data permission control
+4. **Developer Friendly** - Comprehensive API docs, utility libraries, parameter validation
 5. **Production Ready** - Logging, monitoring, distributed deployment support
+6. **Flexible Storage** - Pluggable storage backends with factory pattern
 
 ## Roadmap
 
+- [x] File Management Module
 - [ ] Code Generator
 - [ ] Scheduled Tasks Module
-- [ ] File Management Module
 - [ ] Data Dictionary Module
 - [ ] Workflow Engine
 
