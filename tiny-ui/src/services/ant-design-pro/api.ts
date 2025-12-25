@@ -38,6 +38,26 @@ export async function getCaptcha(options?: { [key: string]: any }) {
   });
 }
 
+/** 用户注册 POST /api/auth/register */
+export async function register(body: API.RegisterParams, options?: { [key: string]: any }) {
+  return request<API.ResponseResult<void>>('/api/auth/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 获取公开配置 GET /api/system/config/public */
+export async function getPublicConfig(options?: { [key: string]: any }) {
+  return request<API.ResponseResult<API.PublicConfig>>('/api/system/config/public', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
 /** 获取规则列表 GET /api/rule */
 export async function rule(
   params: {

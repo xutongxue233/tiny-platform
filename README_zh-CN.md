@@ -78,10 +78,12 @@ Tiny Platform 是一个基于 **Spring Boot 3 + MyBatis Plus + Sa-Token + React 
 
 ### 系统管理
 - 用户管理（增删改查、状态管理、密码重置）
+- 用户注册（可配置注册功能、验证码校验）
 - 角色管理（角色分配、权限配置）
 - 菜单管理（树形结构、路由配置、按钮权限）
 - 部门管理（树形结构、数据权限）
 - 数据字典（字典类型与字典项管理、缓存支持）
+- 系统参数配置（全局参数配置、缓存刷新）
 
 ### 日志系统
 - 操作日志（基于 AOP 切面自动记录，支持注解配置）
@@ -225,7 +227,9 @@ npm run dev
 |-----|------|-----|
 | POST | /auth/login | 用户登录 |
 | POST | /auth/logout | 用户登出 |
+| POST | /auth/register | 用户注册 |
 | GET | /auth/getUserInfo | 获取当前用户信息 |
+| GET | /auth/captcha | 获取验证码图片 |
 
 ### 系统管理
 | 方法 | 接口 | 说明 |
@@ -268,6 +272,17 @@ npm run dev
 | GET | /gen/table/download/{tableId} | 下载生成代码 |
 | POST | /gen/table/batchGenerate | 批量生成代码 |
 
+### 系统参数配置
+| 方法 | 接口 | 说明 |
+|-----|------|-----|
+| GET | /sys/config/page | 参数配置分页查询 |
+| GET | /sys/config/{configId} | 根据ID获取参数 |
+| GET | /sys/config/key/{configKey} | 根据键名获取参数 |
+| POST | /sys/config | 创建参数配置 |
+| PUT | /sys/config | 更新参数配置 |
+| DELETE | /sys/config/{configId} | 删除参数配置 |
+| DELETE | /sys/config/refreshCache | 刷新参数缓存 |
+
 ## 模块扩展
 
 系统采用模块化设计，后期可以方便地添加新模块：
@@ -288,6 +303,7 @@ npm run dev
 
 ## 后续规划
 
+- [ ] 通知公告模块
 - [ ] 定时任务模块
 - [ ] 工作流引擎
 

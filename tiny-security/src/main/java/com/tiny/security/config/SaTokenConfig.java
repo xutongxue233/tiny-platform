@@ -20,6 +20,7 @@ public class SaTokenConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/auth/login",
                         "/auth/captcha",
+                        "/auth/register",
                         "/error",
                         // Knife4j 相关路径
                         "/doc.html",
@@ -32,7 +33,9 @@ public class SaTokenConfig implements WebMvcConfigurer {
                         // Druid 监控
                         "/druid/**",
                         // 字典数据公共接口
-                        "/dict/**"
+                        "/dict/**",
+                        // 公开配置接口
+                        "/system/config/public"
                 );
     }
 }

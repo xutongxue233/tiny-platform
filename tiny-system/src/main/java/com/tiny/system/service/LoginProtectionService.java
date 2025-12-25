@@ -1,4 +1,4 @@
-package com.tiny.security.service;
+package com.tiny.system.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 public class LoginProtectionService {
 
     private final StringRedisTemplate stringRedisTemplate;
+    private final SysConfigService configService;
 
     /**
      * 登录失败计数器 Redis Key 前缀
@@ -29,19 +30,28 @@ public class LoginProtectionService {
     private static final String LOGIN_LOCK_KEY = "login:lock:";
 
     /**
-     * 最大失败次数
+     * 获取最大失败次数
      */
-    private static final int MAX_FAIL_COUNT = 5;
+    private int getMaxFailCount() {
+        Integer value = configService.getConfigInteger("sys.auth.maxFailCount");
+        return value != null ? value : 5;
+    }
 
     /**
-     * 失败计数有效期（分钟）
+     * 获取失败计数有效期（分钟）
      */
-    private static final int FAIL_COUNT_EXPIRE_MINUTES = 10;
+    private int getFailCountExpireMinutes() {
+        Integer value = configService.getConfigInteger("sys.auth.failCountExpireMinutes");
+        return value != null ? value : 10;
+    }
 
     /**
-     * 锁定时间（分钟）
+     * 获取锁定时间（分钟）
      */
-    private static final int LOCK_MINUTES = 15;
+    private int getLockMinutes() {
+        Integer value = configService.getConfigInteger("sys.auth.lockMinutes");
+        return value != null ? value : 15;
+    }
 
     /**
      * 检查账号是否被锁定
@@ -83,13 +93,14 @@ public class LoginProtectionService {
 
         // 首次失败，设置过期时间
         if (count == 1) {
-            stringRedisTemplate.expire(countKey, FAIL_COUNT_EXPIRE_MINUTES, TimeUnit.MINUTES);
+            stringRedisTemplate.expire(countKey, getFailCountExpireMinutes(), TimeUnit.MINUTES);
         }
 
         // 达到最大失败次数，锁定账号
-        if (count >= MAX_FAIL_COUNT) {
+        int maxFailCount = getMaxFailCount();
+        if (count >= maxFailCount) {
             lockAccount(username);
-            log.warn("账号 {} 因连续{}次登录失败被锁定{}分钟", username, MAX_FAIL_COUNT, LOCK_MINUTES);
+            log.warn("账号 {} 因连续{}次登录失败被锁定{}分钟", username, maxFailCount, getLockMinutes());
         }
 
         return count.intValue();
@@ -102,7 +113,7 @@ public class LoginProtectionService {
      */
     private void lockAccount(String username) {
         String lockKey = LOGIN_LOCK_KEY + username;
-        stringRedisTemplate.opsForValue().set(lockKey, "1", LOCK_MINUTES, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForValue().set(lockKey, "1", getLockMinutes(), TimeUnit.MINUTES);
         // 清除失败计数
         clearFailCount(username);
     }
@@ -126,11 +137,12 @@ public class LoginProtectionService {
     public int getRemainAttempts(String username) {
         String countKey = LOGIN_FAIL_COUNT_KEY + username;
         String countStr = stringRedisTemplate.opsForValue().get(countKey);
+        int maxFailCount = getMaxFailCount();
         if (countStr == null) {
-            return MAX_FAIL_COUNT;
+            return maxFailCount;
         }
         int count = Integer.parseInt(countStr);
-        return Math.max(0, MAX_FAIL_COUNT - count);
+        return Math.max(0, maxFailCount - count);
     }
 
     /**

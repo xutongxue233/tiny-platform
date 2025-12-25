@@ -13,18 +13,24 @@ import com.tiny.common.enums.StatusEnum;
 import com.tiny.common.exception.BusinessException;
 import com.tiny.core.web.WebUtil;
 import com.tiny.security.context.LoginUser;
-import com.tiny.security.service.LoginProtectionService;
 import com.tiny.security.utils.LoginUserUtil;
+import com.tiny.system.service.LoginProtectionService;
 import com.tiny.system.dto.LoginDTO;
+import com.tiny.system.dto.RegisterDTO;
 import com.tiny.system.entity.*;
 import com.tiny.system.mapper.*;
 import com.tiny.system.service.AuthService;
+import com.tiny.system.service.CaptchaService;
+import com.tiny.system.service.SysConfigService;
 import com.tiny.system.service.SysLoginLogService;
 import com.tiny.system.vo.LoginVO;
 import com.tiny.system.vo.UserInfoVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -46,6 +52,8 @@ public class AuthServiceImpl implements AuthService {
     private final SysRoleDeptMapper roleDeptMapper;
     private final SysLoginLogService loginLogService;
     private final LoginProtectionService loginProtectionService;
+    private final SysConfigService configService;
+    private final CaptchaService captchaService;
 
     @Override
     public LoginVO login(LoginDTO loginDTO) {
@@ -54,6 +62,11 @@ public class AuthServiceImpl implements AuthService {
         // 在异步调用前获取请求信息
         String ipAddr = WebUtil.getIpAddr();
         String userAgent = WebUtil.getUserAgent();
+
+        // 验证码校验
+        if (configService.getConfigBoolean("sys.captcha.enabled")) {
+            captchaService.verifyAndThrow(loginDTO.getCaptchaKey(), loginDTO.getCaptcha());
+        }
 
         // 检查账号是否被锁定
         if (loginProtectionService.isLocked(username)) {
@@ -73,7 +86,7 @@ public class AuthServiceImpl implements AuthService {
             int remainAttempts = loginProtectionService.getRemainAttempts(username);
             String msg = remainAttempts > 0
                     ? CommonConstants.LOGIN_ERROR + "，剩余尝试次数：" + remainAttempts
-                    : "账号已被锁定，请15分钟后重试";
+                    : "账号已被锁定，请" + getLockMinutes() + "分钟后重试";
             loginLogService.recordLoginLog(username, null, LoginTypeEnum.LOGIN.getCode(), StatusEnum.DISABLE.getCode(), msg, ipAddr, userAgent);
             throw new BusinessException(msg);
         }
@@ -84,7 +97,7 @@ public class AuthServiceImpl implements AuthService {
             int remainAttempts = loginProtectionService.getRemainAttempts(username);
             String msg = remainAttempts > 0
                     ? CommonConstants.LOGIN_ERROR + "，剩余尝试次数：" + remainAttempts
-                    : "账号已被锁定，请15分钟后重试";
+                    : "账号已被锁定，请" + getLockMinutes() + "分钟后重试";
             loginLogService.recordLoginLog(username, user.getUserId(), LoginTypeEnum.LOGIN.getCode(), StatusEnum.DISABLE.getCode(), msg, ipAddr, userAgent);
             throw new BusinessException(msg);
         }
@@ -220,6 +233,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
+     * 获取账号锁定时长（分钟）
+     */
+    private int getLockMinutes() {
+        Integer value = configService.getConfigInteger("sys.auth.lockMinutes");
+        return value != null ? value : 15;
+    }
+
+    /**
      * 格式化封禁剩余时间
      */
     private String formatDisableTime(long seconds) {
@@ -245,5 +266,68 @@ public class AuthServiceImpl implements AuthService {
             sb.append(secs).append("秒");
         }
         return sb.toString();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void register(RegisterDTO registerDTO) {
+        // 检查注册开关
+        if (!configService.getConfigBoolean("sys.account.registerEnabled")) {
+            throw new BusinessException("系统暂未开放注册");
+        }
+
+        // 校验验证码
+        captchaService.verifyAndThrow(registerDTO.getCaptchaKey(), registerDTO.getCaptcha());
+
+        // 校验两次密码是否一致
+        if (!registerDTO.getPassword().equals(registerDTO.getConfirmPassword())) {
+            throw new BusinessException("两次输入的密码不一致");
+        }
+
+        // 校验密码长度
+        String password = registerDTO.getPassword();
+        int minLength = getPasswordMinLength();
+        int maxLength = getPasswordMaxLength();
+        if (password.length() < minLength || password.length() > maxLength) {
+            throw new BusinessException("密码长度必须在" + minLength + "-" + maxLength + "位之间");
+        }
+
+        // 校验用户名是否存在
+        String username = registerDTO.getUsername();
+        long count = userMapper.selectCount(
+                Wrappers.<SysUser>lambdaQuery().eq(SysUser::getUsername, username)
+        );
+        if (count > 0) {
+            throw new BusinessException("用户名已存在");
+        }
+
+        // 创建用户
+        SysUser user = new SysUser();
+        user.setUsername(username);
+        user.setPassword(BCrypt.hashpw(password));
+        user.setStatus(StatusEnum.NORMAL.getCode());
+        userMapper.insert(user);
+
+        // 分配默认角色（普通用户，roleId=2）
+        SysUserRole userRole = new SysUserRole();
+        userRole.setUserId(user.getUserId());
+        userRole.setRoleId(2L);
+        userRoleMapper.insert(userRole);
+    }
+
+    /**
+     * 获取密码最小长度
+     */
+    private int getPasswordMinLength() {
+        Integer value = configService.getConfigInteger("sys.password.minLength");
+        return value != null ? value : 6;
+    }
+
+    /**
+     * 获取密码最大长度
+     */
+    private int getPasswordMaxLength() {
+        Integer value = configService.getConfigInteger("sys.password.maxLength");
+        return value != null ? value : 20;
     }
 }

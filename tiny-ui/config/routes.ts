@@ -20,6 +20,11 @@ export default [
         path: '/user/login',
         component: './user/login',
       },
+      {
+        name: 'register',
+        path: '/user/register',
+        component: './user/register',
+      },
     ],
   },
   {
@@ -77,6 +82,10 @@ export default [
       {
         path: '/system/dict',
         component: './system/dict/index',
+      },
+      {
+        path: '/system/config',
+        component: './system/config/index',
       },
     ],
   },

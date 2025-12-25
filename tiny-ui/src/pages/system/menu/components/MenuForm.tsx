@@ -175,14 +175,6 @@ const MenuForm: FC<MenuFormProps> = (props) => {
           }}
         />
 
-        {menuType !== 'F' && (
-          <IconSelect
-            name="icon"
-            label={intl.formatMessage({ id: 'pages.menu.icon', defaultMessage: '菜单图标' })}
-            colProps={{ span: 24 }}
-          />
-        )}
-
         <ProFormText
           name="menuName"
           label={intl.formatMessage({ id: 'pages.menu.menuName', defaultMessage: '菜单名称' })}
@@ -216,6 +208,14 @@ const MenuForm: FC<MenuFormProps> = (props) => {
           min={0}
           fieldProps={{ precision: 0 }}
         />
+
+        {menuType !== 'F' && (
+          <IconSelect
+            name="icon"
+            label={intl.formatMessage({ id: 'pages.menu.icon', defaultMessage: '菜单图标' })}
+            colProps={{ span: 12 }}
+          />
+        )}
 
         {menuType !== 'F' && (
           <>

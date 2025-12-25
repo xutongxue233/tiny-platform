@@ -25,6 +25,7 @@ import com.tiny.system.mapper.SysDeptMapper;
 import com.tiny.system.mapper.SysRoleMapper;
 import com.tiny.system.mapper.SysUserMapper;
 import com.tiny.system.mapper.SysUserRoleMapper;
+import com.tiny.system.service.SysConfigService;
 import com.tiny.system.service.SysDeptService;
 import com.tiny.system.service.SysUserService;
 import com.tiny.system.vo.SysUserVO;
@@ -49,6 +50,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysRoleMapper roleMapper;
     private final SysUserRoleMapper userRoleMapper;
     private final SysDeptMapper deptMapper;
+    private final SysConfigService configService;
 
     @Override
     public PageResult<SysUserVO> page(SysUserQueryDTO queryDTO) {
@@ -97,6 +99,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException("邮箱已存在");
         }
 
+        // 校验密码长度
+        validatePasswordLength(dto.getPassword());
+
         SysUser user = BeanUtil.copyProperties(dto, SysUser.class, "password", "status");
         user.setPassword(BCrypt.hashpw(dto.getPassword()));
         user.setStatus(StrUtil.isBlank(dto.getStatus()) ? StatusEnum.NORMAL.getCode() : dto.getStatus());
@@ -134,6 +139,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         BeanUtil.copyProperties(dto, user, "userId", "password");
         if (StrUtil.isNotBlank(dto.getPassword())) {
+            // 校验密码长度
+            validatePasswordLength(dto.getPassword());
             user.setPassword(BCrypt.hashpw(dto.getPassword()));
         }
 
@@ -193,7 +200,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException("用户不存在");
         }
 
-        user.setPassword(BCrypt.hashpw(newPassword));
+        // 如果未指定新密码，使用配置的初始密码
+        String password = StrUtil.isBlank(newPassword) ? getInitPassword() : newPassword;
+        // 校验密码长度
+        validatePasswordLength(password);
+
+        user.setPassword(BCrypt.hashpw(password));
         this.updateById(user);
     }
 
@@ -261,6 +273,45 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             wrapper.ne(SysUser::getUserId, excludeUserId);
         }
         return this.count(wrapper) > 0;
+    }
+
+    /**
+     * 校验密码长度
+     */
+    private void validatePasswordLength(String password) {
+        if (StrUtil.isBlank(password)) {
+            return;
+        }
+        int minLength = getPasswordMinLength();
+        int maxLength = getPasswordMaxLength();
+        int length = password.length();
+        if (length < minLength || length > maxLength) {
+            throw new BusinessException("密码长度必须在" + minLength + "-" + maxLength + "位之间");
+        }
+    }
+
+    /**
+     * 获取密码最小长度
+     */
+    private int getPasswordMinLength() {
+        Integer value = configService.getConfigInteger("sys.password.minLength");
+        return value != null ? value : 6;
+    }
+
+    /**
+     * 获取密码最大长度
+     */
+    private int getPasswordMaxLength() {
+        Integer value = configService.getConfigInteger("sys.password.maxLength");
+        return value != null ? value : 20;
+    }
+
+    /**
+     * 获取用户初始密码
+     */
+    private String getInitPassword() {
+        String value = configService.getConfigValue("sys.user.initPassword");
+        return StrUtil.isNotBlank(value) ? value : "123456";
     }
 
     /**

@@ -195,6 +195,7 @@
                 <artifactId>cos_api</artifactId>
                 <version>${tencent-cos.version}</version>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 

@@ -78,10 +78,12 @@ Tiny Platform is a modular backend management system built with **Spring Boot 3 
 
 ### System Management
 - User Management (CRUD, status control, password reset)
+- User Registration (configurable registration, captcha verification)
 - Role Management (role assignment, permission configuration)
 - Menu Management (tree structure, routing, button permissions)
 - Department Management (tree structure, data permission)
 - Data Dictionary (dictionary type and item management, cache support)
+- System Configuration (global parameters, cache refresh)
 
 ### Logging System
 - Operation Logs (auto-record via AOP, annotation-based)
@@ -225,7 +227,9 @@ npm run dev
 |--------|----------|-------------|
 | POST | /auth/login | User login |
 | POST | /auth/logout | User logout |
+| POST | /auth/register | User registration |
 | GET | /auth/getUserInfo | Get current user info |
+| GET | /auth/captcha | Get captcha image |
 
 ### System Management
 | Method | Endpoint | Description |
@@ -268,6 +272,17 @@ npm run dev
 | GET | /gen/table/download/{tableId} | Download generated code |
 | POST | /gen/table/batchGenerate | Batch generate code |
 
+### System Configuration
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /sys/config/page | Config pagination |
+| GET | /sys/config/{configId} | Get config by ID |
+| GET | /sys/config/key/{configKey} | Get config by key |
+| POST | /sys/config | Create config |
+| PUT | /sys/config | Update config |
+| DELETE | /sys/config/{configId} | Delete config |
+| DELETE | /sys/config/refreshCache | Refresh config cache |
+
 ## Extension Guide
 
 The system uses modular design for easy extension:
@@ -288,6 +303,7 @@ The system uses modular design for easy extension:
 
 ## Roadmap
 
+- [ ] Notification Module
 - [ ] Scheduled Tasks Module
 - [ ] Workflow Engine
 

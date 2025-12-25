@@ -1,6 +1,7 @@
 package com.tiny.system.service;
 
 import com.tiny.system.dto.LoginDTO;
+import com.tiny.system.dto.RegisterDTO;
 import com.tiny.system.vo.LoginVO;
 import com.tiny.system.vo.UserInfoVO;
 
@@ -28,4 +29,11 @@ public interface AuthService {
      * @return 用户信息
      */
     UserInfoVO getUserInfo();
+
+    /**
+     * 用户注册
+     *
+     * @param registerDTO 注册参数
+     */
+    void register(RegisterDTO registerDTO);
 }

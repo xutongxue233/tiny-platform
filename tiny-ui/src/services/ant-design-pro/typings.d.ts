@@ -555,4 +555,65 @@ declare namespace API {
     itemLabel?: string;
     status?: string;
   };
+
+  /** 系统参数配置 */
+  type SysConfig = {
+    configId?: number;
+    configName?: string;
+    configKey?: string;
+    configValue?: string;
+    configType?: string;
+    configGroup?: string;
+    isBuiltin?: string;
+    status?: string;
+    remark?: string;
+    createTime?: string;
+  };
+
+  /** 系统参数配置DTO */
+  type SysConfigDTO = {
+    configId?: number;
+    configName: string;
+    configKey: string;
+    configValue?: string;
+    configType?: string;
+    configGroup?: string;
+    isBuiltin?: string;
+    status?: string;
+    remark?: string;
+  };
+
+  /** 系统参数配置查询参数 */
+  type SysConfigQueryParams = {
+    current?: number;
+    size?: number;
+    configName?: string;
+    configKey?: string;
+    configType?: string;
+    configGroup?: string;
+    status?: string;
+  };
+
+  /** 注册参数 */
+  type RegisterParams = {
+    username: string;
+    password: string;
+    confirmPassword: string;
+    captcha: string;
+    captchaKey: string;
+  };
+
+  /** 验证码结果 */
+  type CaptchaResult = {
+    captchaKey: string;
+    captchaImage: string;
+  };
+
+  /** 公开配置 */
+  type PublicConfig = {
+    appName?: string;
+    appVersion?: string;
+    captchaEnabled?: boolean;
+    registerEnabled?: boolean;
+  };
 }

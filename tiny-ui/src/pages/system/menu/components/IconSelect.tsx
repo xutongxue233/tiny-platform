@@ -1,174 +1,111 @@
 import { ProForm } from '@ant-design/pro-components';
-import { Input, Modal, Tabs, Empty } from 'antd';
-import { SearchOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import * as AntdIcons from '@ant-design/icons';
+import { Input, Popover, Tabs, Empty } from 'antd';
+import { CloseCircleOutlined } from '@ant-design/icons';
+import Icon, * as AntdIcons from '@ant-design/icons';
 import type { FC } from 'react';
 import { useState, useMemo } from 'react';
 
 interface IconSelectProps {
   name: string;
   label: string;
+  colProps?: Record<string, unknown>;
 }
-
-const outlinedIcons = [
-  'StepBackwardOutlined', 'StepForwardOutlined', 'FastBackwardOutlined', 'FastForwardOutlined',
-  'ShrinkOutlined', 'ArrowsAltOutlined', 'DownOutlined', 'UpOutlined', 'LeftOutlined', 'RightOutlined',
-  'CaretUpOutlined', 'CaretDownOutlined', 'CaretLeftOutlined', 'CaretRightOutlined',
-  'UpCircleOutlined', 'DownCircleOutlined', 'LeftCircleOutlined', 'RightCircleOutlined',
-  'DoubleRightOutlined', 'DoubleLeftOutlined', 'VerticalLeftOutlined', 'VerticalRightOutlined',
-  'VerticalAlignTopOutlined', 'VerticalAlignMiddleOutlined', 'VerticalAlignBottomOutlined',
-  'ForwardOutlined', 'BackwardOutlined', 'RollbackOutlined', 'EnterOutlined',
-  'RetweetOutlined', 'SwapOutlined', 'SwapLeftOutlined', 'SwapRightOutlined',
-  'ArrowUpOutlined', 'ArrowDownOutlined', 'ArrowLeftOutlined', 'ArrowRightOutlined',
-  'PlayCircleOutlined', 'UpSquareOutlined', 'DownSquareOutlined', 'LeftSquareOutlined', 'RightSquareOutlined',
-  'LoginOutlined', 'LogoutOutlined', 'MenuFoldOutlined', 'MenuUnfoldOutlined',
-  'BorderBottomOutlined', 'BorderHorizontalOutlined', 'BorderInnerOutlined', 'BorderOuterOutlined',
-  'BorderLeftOutlined', 'BorderRightOutlined', 'BorderTopOutlined', 'BorderVerticleOutlined',
-  'PicCenterOutlined', 'PicLeftOutlined', 'PicRightOutlined', 'RadiusBottomleftOutlined',
-  'RadiusBottomrightOutlined', 'RadiusUpleftOutlined', 'RadiusUprightOutlined', 'FullscreenOutlined',
-  'FullscreenExitOutlined',
-];
-
-const suggestedIcons = [
-  'QuestionOutlined', 'QuestionCircleOutlined', 'PlusOutlined', 'PlusCircleOutlined', 'PauseOutlined',
-  'PauseCircleOutlined', 'MinusOutlined', 'MinusCircleOutlined', 'PlusSquareOutlined', 'MinusSquareOutlined',
-  'InfoOutlined', 'InfoCircleOutlined', 'ExclamationOutlined', 'ExclamationCircleOutlined',
-  'CloseOutlined', 'CloseCircleOutlined', 'CloseSquareOutlined', 'CheckOutlined', 'CheckCircleOutlined',
-  'CheckSquareOutlined', 'ClockCircleOutlined', 'WarningOutlined', 'IssuesCloseOutlined',
-  'StopOutlined',
-];
-
-const editIcons = [
-  'EditOutlined', 'FormOutlined', 'CopyOutlined', 'ScissorOutlined', 'DeleteOutlined',
-  'SnippetsOutlined', 'DiffOutlined', 'HighlightOutlined', 'AlignCenterOutlined', 'AlignLeftOutlined',
-  'AlignRightOutlined', 'BgColorsOutlined', 'BoldOutlined', 'ItalicOutlined', 'UnderlineOutlined',
-  'StrikethroughOutlined', 'RedoOutlined', 'UndoOutlined', 'ZoomInOutlined', 'ZoomOutOutlined',
-  'FontColorsOutlined', 'FontSizeOutlined', 'LineHeightOutlined', 'DashOutlined',
-  'SmallDashOutlined', 'SortAscendingOutlined', 'SortDescendingOutlined', 'DragOutlined',
-  'OrderedListOutlined', 'UnorderedListOutlined', 'RadiusSettingOutlined', 'ColumnWidthOutlined',
-  'ColumnHeightOutlined',
-];
-
-const dataIcons = [
-  'AreaChartOutlined', 'PieChartOutlined', 'BarChartOutlined', 'DotChartOutlined',
-  'LineChartOutlined', 'RadarChartOutlined', 'HeatMapOutlined', 'FallOutlined', 'RiseOutlined',
-  'StockOutlined', 'BoxPlotOutlined', 'FundOutlined', 'SlidersOutlined',
-];
-
-const brandIcons = [
-  'AndroidOutlined', 'AppleOutlined', 'WindowsOutlined', 'IeOutlined', 'ChromeOutlined',
-  'GithubOutlined', 'AliwangwangOutlined', 'DingdingOutlined', 'WeiboSquareOutlined',
-  'WeiboCircleOutlined', 'TaobaoCircleOutlined', 'Html5Outlined', 'WeiboOutlined',
-  'TwitterOutlined', 'WechatOutlined', 'YoutubeOutlined', 'AlipayCircleOutlined',
-  'TaobaoOutlined', 'SkypeOutlined', 'QqOutlined', 'MediumWorkmarkOutlined', 'GitlabOutlined',
-  'MediumOutlined', 'LinkedinOutlined', 'GooglePlusOutlined', 'DropboxOutlined',
-  'FacebookOutlined', 'CodepenOutlined', 'CodeSandboxOutlined', 'AmazonOutlined',
-  'GoogleOutlined', 'CodepenCircleOutlined', 'AlipayOutlined', 'AntDesignOutlined',
-  'AntCloudOutlined', 'AliyunOutlined', 'ZhihuOutlined', 'SlackOutlined', 'SlackSquareOutlined',
-  'BehanceOutlined', 'BehanceSquareOutlined', 'DribbbleOutlined', 'DribbbleSquareOutlined',
-  'InstagramOutlined', 'YuqueOutlined', 'AlibabaOutlined', 'YahooOutlined', 'RedditOutlined',
-  'SketchOutlined',
-];
-
-const applicationIcons = [
-  'AccountBookOutlined', 'AimOutlined', 'AlertOutlined', 'ApartmentOutlined', 'ApiOutlined',
-  'AppstoreAddOutlined', 'AppstoreOutlined', 'AudioOutlined', 'AudioMutedOutlined', 'AuditOutlined',
-  'BankOutlined', 'BarcodeOutlined', 'BarsOutlined', 'BellOutlined', 'BlockOutlined',
-  'BookOutlined', 'BorderOutlined', 'BorderlessTableOutlined', 'BranchesOutlined', 'BugOutlined',
-  'BuildOutlined', 'BulbOutlined', 'CalculatorOutlined', 'CalendarOutlined', 'CameraOutlined',
-  'CarOutlined', 'CarryOutOutlined', 'CiCircleOutlined', 'CiOutlined', 'ClearOutlined',
-  'CloudDownloadOutlined', 'CloudOutlined', 'CloudServerOutlined', 'CloudSyncOutlined',
-  'CloudUploadOutlined', 'ClusterOutlined', 'CodeOutlined', 'CoffeeOutlined', 'CommentOutlined',
-  'CompassOutlined', 'CompressOutlined', 'ConsoleSqlOutlined', 'ContactsOutlined',
-  'ContainerOutlined', 'ControlOutlined', 'CopyrightOutlined', 'CreditCardOutlined',
-  'CrownOutlined', 'CustomerServiceOutlined', 'DashboardOutlined', 'DatabaseOutlined',
-  'DeleteColumnOutlined', 'DeleteRowOutlined', 'DeliveredProcedureOutlined', 'DeploymentUnitOutlined',
-  'DesktopOutlined', 'DisconnectOutlined', 'DislikeOutlined', 'DollarOutlined',
-  'DownloadOutlined', 'EllipsisOutlined', 'EnvironmentOutlined', 'EuroCircleOutlined',
-  'EuroOutlined', 'ExceptionOutlined', 'ExpandAltOutlined', 'ExpandOutlined', 'ExperimentOutlined',
-  'ExportOutlined', 'EyeOutlined', 'EyeInvisibleOutlined', 'FieldBinaryOutlined',
-  'FieldNumberOutlined', 'FieldStringOutlined', 'FieldTimeOutlined', 'FileAddOutlined',
-  'FileDoneOutlined', 'FileExcelOutlined', 'FileExclamationOutlined', 'FileOutlined',
-  'FileGifOutlined', 'FileImageOutlined', 'FileJpgOutlined', 'FileMarkdownOutlined',
-  'FilePdfOutlined', 'FilePptOutlined', 'FileProtectOutlined', 'FileSearchOutlined',
-  'FileSyncOutlined', 'FileTextOutlined', 'FileUnknownOutlined', 'FileWordOutlined',
-  'FileZipOutlined', 'FilterOutlined', 'FireOutlined', 'FlagOutlined', 'FolderAddOutlined',
-  'FolderOutlined', 'FolderOpenOutlined', 'FolderViewOutlined', 'ForkOutlined',
-  'FormatPainterOutlined', 'FrownOutlined', 'FunctionOutlined', 'FundProjectionScreenOutlined',
-  'FundViewOutlined', 'FunnelPlotOutlined', 'GatewayOutlined', 'GifOutlined', 'GiftOutlined',
-  'GlobalOutlined', 'GoldOutlined', 'GroupOutlined', 'HddOutlined', 'HeartOutlined',
-  'HistoryOutlined', 'HolderOutlined', 'HomeOutlined', 'HourglassOutlined', 'IdcardOutlined',
-  'ImportOutlined', 'InboxOutlined', 'InsertRowAboveOutlined', 'InsertRowBelowOutlined',
-  'InsertRowLeftOutlined', 'InsertRowRightOutlined', 'InsuranceOutlined', 'InteractionOutlined',
-  'KeyOutlined', 'LaptopOutlined', 'LayoutOutlined', 'LikeOutlined', 'LineOutlined',
-  'LinkOutlined', 'Loading3QuartersOutlined', 'LoadingOutlined', 'LockOutlined',
-  'MacCommandOutlined', 'MailOutlined', 'ManOutlined', 'MedicineBoxOutlined', 'MehOutlined',
-  'MenuOutlined', 'MergeCellsOutlined', 'MessageOutlined', 'MobileOutlined', 'MoneyCollectOutlined',
-  'MonitorOutlined', 'MoreOutlined', 'NodeCollapseOutlined', 'NodeExpandOutlined',
-  'NodeIndexOutlined', 'NotificationOutlined', 'NumberOutlined', 'OneToOneOutlined',
-  'PaperClipOutlined', 'PartitionOutlined', 'PayCircleOutlined', 'PercentageOutlined',
-  'PhoneOutlined', 'PictureOutlined', 'PlaySquareOutlined', 'PoundCircleOutlined', 'PoundOutlined',
-  'PoweroffOutlined', 'PrinterOutlined', 'ProfileOutlined', 'ProjectOutlined', 'PropertySafetyOutlined',
-  'PullRequestOutlined', 'PushpinOutlined', 'QrcodeOutlined', 'ReadOutlined', 'ReconciliationOutlined',
-  'RedEnvelopeOutlined', 'ReloadOutlined', 'RestOutlined', 'RobotOutlined', 'RocketOutlined',
-  'RotateLeftOutlined', 'RotateRightOutlined', 'SafetyCertificateOutlined', 'SafetyOutlined',
-  'SaveOutlined', 'ScanOutlined', 'ScheduleOutlined', 'SearchOutlined', 'SecurityScanOutlined',
-  'SelectOutlined', 'SendOutlined', 'SettingOutlined', 'ShakeOutlined', 'ShareAltOutlined',
-  'ShopOutlined', 'ShoppingCartOutlined', 'ShoppingOutlined', 'SisternodeOutlined',
-  'SkinOutlined', 'SmileOutlined', 'SolutionOutlined', 'SoundOutlined', 'SplitCellsOutlined',
-  'StarOutlined', 'SubnodeOutlined', 'SwitcherOutlined', 'SyncOutlined', 'TableOutlined',
-  'TabletOutlined', 'TagOutlined', 'TagsOutlined', 'TeamOutlined', 'ThunderboltOutlined',
-  'ToTopOutlined', 'ToolOutlined', 'TrademarkCircleOutlined', 'TrademarkOutlined',
-  'TransactionOutlined', 'TranslationOutlined', 'TrophyOutlined', 'UngroupOutlined',
-  'UnlockOutlined', 'UploadOutlined', 'UsbOutlined', 'UserAddOutlined', 'UserDeleteOutlined',
-  'UserOutlined', 'UserSwitchOutlined', 'UsergroupAddOutlined', 'UsergroupDeleteOutlined',
-  'VerifiedOutlined', 'VideoCameraAddOutlined', 'VideoCameraOutlined', 'WalletOutlined',
-  'WhatsAppOutlined', 'WifiOutlined', 'WomanOutlined',
-];
-
-const iconCategories = [
-  { key: 'direction', label: '方向', icons: outlinedIcons },
-  { key: 'suggestion', label: '提示', icons: suggestedIcons },
-  { key: 'edit', label: '编辑', icons: editIcons },
-  { key: 'data', label: '数据', icons: dataIcons },
-  { key: 'brand', label: '品牌', icons: brandIcons },
-  { key: 'application', label: '应用', icons: applicationIcons },
-];
-
-const IconSelect: FC<IconSelectProps> = ({ name, label }) => {
-  return (
-    <ProForm.Item
-      name={name}
-      label={label}
-    >
-      <IconSelectInput />
-    </ProForm.Item>
-  );
-};
 
 interface IconSelectInputProps {
   value?: string;
   onChange?: (value: string) => void;
 }
 
+// 图标分类数据
+const iconData: Record<string, string[]> = {
+  Direction: [
+    'StepBackwardOutlined', 'StepForwardOutlined', 'FastBackwardOutlined', 'FastForwardOutlined',
+    'ShrinkOutlined', 'ArrowsAltOutlined', 'DownOutlined', 'UpOutlined', 'LeftOutlined', 'RightOutlined',
+    'CaretUpOutlined', 'CaretDownOutlined', 'CaretLeftOutlined', 'CaretRightOutlined',
+    'UpCircleOutlined', 'DownCircleOutlined', 'LeftCircleOutlined', 'RightCircleOutlined',
+    'DoubleRightOutlined', 'DoubleLeftOutlined', 'VerticalLeftOutlined', 'VerticalRightOutlined',
+    'VerticalAlignTopOutlined', 'VerticalAlignMiddleOutlined', 'VerticalAlignBottomOutlined',
+    'ForwardOutlined', 'BackwardOutlined', 'RollbackOutlined', 'EnterOutlined',
+    'RetweetOutlined', 'SwapOutlined', 'SwapLeftOutlined', 'SwapRightOutlined',
+    'ArrowUpOutlined', 'ArrowDownOutlined', 'ArrowLeftOutlined', 'ArrowRightOutlined',
+    'LoginOutlined', 'LogoutOutlined', 'MenuFoldOutlined', 'MenuUnfoldOutlined',
+    'FullscreenOutlined', 'FullscreenExitOutlined',
+  ],
+  Suggestion: [
+    'QuestionOutlined', 'QuestionCircleOutlined', 'PlusOutlined', 'PlusCircleOutlined',
+    'PauseOutlined', 'PauseCircleOutlined', 'MinusOutlined', 'MinusCircleOutlined',
+    'PlusSquareOutlined', 'MinusSquareOutlined', 'InfoOutlined', 'InfoCircleOutlined',
+    'ExclamationOutlined', 'ExclamationCircleOutlined', 'CloseOutlined', 'CloseCircleOutlined',
+    'CloseSquareOutlined', 'CheckOutlined', 'CheckCircleOutlined', 'CheckSquareOutlined',
+    'ClockCircleOutlined', 'WarningOutlined', 'IssuesCloseOutlined', 'StopOutlined',
+  ],
+  Editor: [
+    'EditOutlined', 'FormOutlined', 'CopyOutlined', 'ScissorOutlined', 'DeleteOutlined',
+    'SnippetsOutlined', 'DiffOutlined', 'HighlightOutlined', 'AlignCenterOutlined',
+    'AlignLeftOutlined', 'AlignRightOutlined', 'BgColorsOutlined', 'BoldOutlined',
+    'ItalicOutlined', 'UnderlineOutlined', 'StrikethroughOutlined', 'RedoOutlined',
+    'UndoOutlined', 'ZoomInOutlined', 'ZoomOutOutlined', 'FontColorsOutlined',
+    'FontSizeOutlined', 'LineHeightOutlined', 'SortAscendingOutlined', 'SortDescendingOutlined',
+    'DragOutlined', 'OrderedListOutlined', 'UnorderedListOutlined',
+  ],
+  Data: [
+    'AreaChartOutlined', 'PieChartOutlined', 'BarChartOutlined', 'DotChartOutlined',
+    'LineChartOutlined', 'RadarChartOutlined', 'HeatMapOutlined', 'FallOutlined',
+    'RiseOutlined', 'StockOutlined', 'BoxPlotOutlined', 'FundOutlined', 'SlidersOutlined',
+  ],
+  Common: [
+    'HomeOutlined', 'SettingOutlined', 'AppstoreOutlined', 'UserOutlined', 'TeamOutlined',
+    'LockOutlined', 'UnlockOutlined', 'KeyOutlined', 'MenuOutlined', 'BellOutlined',
+    'SearchOutlined', 'StarOutlined', 'HeartOutlined', 'MailOutlined', 'MessageOutlined',
+    'PhoneOutlined', 'CalendarOutlined', 'CameraOutlined', 'CloudOutlined', 'DownloadOutlined',
+    'UploadOutlined', 'FileOutlined', 'FolderOutlined', 'DatabaseOutlined', 'TableOutlined',
+    'ProfileOutlined', 'ScheduleOutlined', 'ShoppingOutlined', 'ShoppingCartOutlined',
+    'WalletOutlined', 'BankOutlined', 'CreditCardOutlined', 'DollarOutlined',
+    'SafetyOutlined', 'SafetyCertificateOutlined', 'SecurityScanOutlined',
+    'ToolOutlined', 'ControlOutlined', 'DashboardOutlined', 'CodeOutlined', 'ApiOutlined',
+    'BugOutlined', 'BuildOutlined', 'ExperimentOutlined', 'RocketOutlined',
+    'FireOutlined', 'ThunderboltOutlined', 'BulbOutlined', 'FlagOutlined', 'CrownOutlined',
+    'TrophyOutlined', 'GiftOutlined', 'SmileOutlined', 'MehOutlined', 'FrownOutlined',
+    'LikeOutlined', 'DislikeOutlined', 'EyeOutlined', 'EyeInvisibleOutlined',
+    'CompassOutlined', 'GlobalOutlined', 'EnvironmentOutlined', 'LinkOutlined',
+    'FilterOutlined', 'SyncOutlined', 'ReloadOutlined', 'PoweroffOutlined',
+    'DesktopOutlined', 'LaptopOutlined', 'MobileOutlined', 'PrinterOutlined',
+    'SoundOutlined', 'AudioOutlined', 'VideoCameraOutlined', 'PictureOutlined',
+    'BookOutlined', 'ReadOutlined', 'HistoryOutlined', 'ProjectOutlined', 'ApartmentOutlined',
+    'BranchesOutlined', 'PartitionOutlined', 'ClusterOutlined', 'DeploymentUnitOutlined',
+    'PushpinOutlined', 'TagOutlined', 'TagsOutlined', 'QrcodeOutlined', 'BarcodeOutlined',
+    'ScanOutlined', 'WifiOutlined', 'UsbOutlined', 'RobotOutlined', 'AlertOutlined',
+    'AuditOutlined', 'IdcardOutlined', 'ContactsOutlined', 'SolutionOutlined',
+    'InsuranceOutlined', 'ReconciliationOutlined', 'CarryOutOutlined', 'FileProtectOutlined',
+    'AccountBookOutlined', 'MoneyCollectOutlined', 'PropertySafetyOutlined',
+    'TransactionOutlined', 'RedEnvelopeOutlined', 'CoffeeOutlined', 'MedicineBoxOutlined',
+    'RestOutlined', 'SkinOutlined', 'CarOutlined', 'ShopOutlined',
+  ],
+  Brand: [
+    'AndroidOutlined', 'AppleOutlined', 'WindowsOutlined', 'ChromeOutlined',
+    'GithubOutlined', 'GitlabOutlined', 'Html5Outlined', 'WechatOutlined',
+    'AlipayOutlined', 'TaobaoOutlined', 'WeiboOutlined', 'QqOutlined',
+    'DingdingOutlined', 'TwitterOutlined', 'FacebookOutlined', 'GoogleOutlined',
+    'LinkedinOutlined', 'YoutubeOutlined', 'InstagramOutlined', 'SkypeOutlined',
+    'SlackOutlined', 'AmazonOutlined', 'DropboxOutlined', 'RedditOutlined',
+    'CodeSandboxOutlined', 'CodepenOutlined', 'AntDesignOutlined', 'AliyunOutlined',
+    'ZhihuOutlined', 'BehanceOutlined', 'DribbbleOutlined', 'SketchOutlined', 'YuqueOutlined',
+  ],
+};
+
 const IconSelectInput: FC<IconSelectInputProps> = ({ value, onChange }) => {
   const [open, setOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
 
-  const filteredCategories = useMemo(() => {
-    if (!searchValue) return iconCategories;
-    return iconCategories.map((category) => ({
-      ...category,
-      icons: category.icons.filter((icon) =>
-        icon.toLowerCase().includes(searchValue.toLowerCase()),
-      ),
-    })).filter((category) => category.icons.length > 0);
-  }, [searchValue]);
+  // 渲染图标
+  const renderIcon = (iconName: string) => {
+    const IconComponent = (AntdIcons as Record<string, unknown>)[iconName];
+    if (!IconComponent) return null;
+    return <Icon component={IconComponent as React.ForwardRefExoticComponent<unknown>} />;
+  };
 
   const handleSelect = (iconName: string) => {
     onChange?.(iconName);
     setOpen(false);
-    setSearchValue('');
   };
 
   const handleClear = (e: React.MouseEvent) => {
@@ -176,33 +113,54 @@ const IconSelectInput: FC<IconSelectInputProps> = ({ value, onChange }) => {
     onChange?.('');
   };
 
-  const handleModalClose = () => {
-    setOpen(false);
-    setSearchValue('');
-  };
-
-  const SelectedIcon = value ? (AntdIcons as any)[value] : null;
-
-  const renderIconGrid = (iconNames: string[]) => {
-    if (iconNames.length === 0) {
-      return <Empty description="没有找到图标" />;
+  // 渲染图标网格
+  const renderIconGrid = (icons: string[]) => {
+    if (icons.length === 0) {
+      return <Empty description="No icons" image={Empty.PRESENTED_IMAGE_SIMPLE} />;
     }
+
     return (
-      <div className="grid grid-cols-8 gap-2 max-h-80 overflow-y-auto p-1">
-        {iconNames.map((iconName) => {
-          const IconComponent = (AntdIcons as any)[iconName];
-          if (!IconComponent) return null;
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          maxHeight: 280,
+          overflowY: 'auto',
+        }}
+      >
+        {icons.map((iconName) => {
           const isSelected = value === iconName;
           return (
             <div
               key={iconName}
-              className={`flex flex-col items-center justify-center p-2 cursor-pointer rounded transition-all hover:bg-gray-100 ${
-                isSelected ? 'bg-blue-50 ring-2 ring-blue-500' : ''
-              }`}
-              onClick={() => handleSelect(iconName)}
               title={iconName}
+              onClick={() => handleSelect(iconName)}
+              style={{
+                width: 40,
+                height: 40,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: 20,
+                borderRadius: 4,
+                border: isSelected ? '1px solid #1677ff' : '1px solid transparent',
+                backgroundColor: isSelected ? '#e6f4ff' : 'transparent',
+                color: isSelected ? '#1677ff' : '#666',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.backgroundColor = '#f5f5f5';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
             >
-              <IconComponent className={`text-2xl ${isSelected ? 'text-blue-500' : ''}`} />
+              {renderIcon(iconName)}
             </div>
           );
         })}
@@ -210,50 +168,58 @@ const IconSelectInput: FC<IconSelectInputProps> = ({ value, onChange }) => {
     );
   };
 
+  // 标签页配置
+  const tabItems = useMemo(
+    () =>
+      Object.entries(iconData).map(([key, icons]) => ({
+        key,
+        label: key,
+        children: renderIconGrid(icons),
+      })),
+    [value],
+  );
+
+  const content = (
+    <div style={{ width: 400 }}>
+      <Tabs size="small" items={tabItems} tabBarStyle={{ marginBottom: 8 }} />
+    </div>
+  );
+
   return (
-    <>
-      <Input
-        readOnly
-        value={value}
-        placeholder="点击选择图标"
-        onClick={() => setOpen(true)}
-        prefix={SelectedIcon ? <SelectedIcon /> : null}
-        suffix={
-          value ? (
-            <CloseCircleOutlined
-              className="cursor-pointer text-gray-400 hover:text-gray-600"
-              onClick={handleClear}
-            />
-          ) : null
-        }
-        className="cursor-pointer"
-      />
-      <Modal
-        title="选择图标"
-        open={open}
-        onCancel={handleModalClose}
-        footer={null}
-        width={600}
-        destroyOnClose
-      >
+    <Popover
+      content={content}
+      trigger="click"
+      open={open}
+      onOpenChange={setOpen}
+      placement="bottomLeft"
+      arrow={false}
+    >
+      <span style={{ display: 'block', cursor: 'pointer' }}>
         <Input
-          placeholder="搜索图标名称"
-          prefix={<SearchOutlined />}
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          allowClear
-          className="mb-4"
+          readOnly
+          value={value}
+          placeholder="Select icon"
+          prefix={value ? renderIcon(value) : null}
+          suffix={
+            value ? (
+              <CloseCircleOutlined
+                style={{ color: '#999', cursor: 'pointer' }}
+                onClick={handleClear}
+              />
+            ) : null
+          }
+          style={{ cursor: 'pointer' }}
         />
-        <Tabs
-          size="small"
-          items={filteredCategories.map((category) => ({
-            key: category.key,
-            label: `${category.label} (${category.icons.length})`,
-            children: renderIconGrid(category.icons),
-          }))}
-        />
-      </Modal>
-    </>
+      </span>
+    </Popover>
+  );
+};
+
+const IconSelect: FC<IconSelectProps> = ({ name, label, colProps }) => {
+  return (
+    <ProForm.Item name={name} label={label} colProps={colProps}>
+      <IconSelectInput />
+    </ProForm.Item>
   );
 };
 
