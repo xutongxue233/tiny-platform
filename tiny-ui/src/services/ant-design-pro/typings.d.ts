@@ -166,6 +166,7 @@ declare namespace API {
     menuId: number;
     parentId: number;
     name: string;
+    localeKey?: string;
     path: string;
     component?: string;
     icon?: string;
@@ -184,6 +185,7 @@ declare namespace API {
   type SysMenu = {
     menuId?: number;
     menuName?: string;
+    localeKey?: string;
     parentId?: number;
     sort?: number;
     path?: string;
@@ -207,6 +209,7 @@ declare namespace API {
   type SysMenuDTO = {
     menuId?: number;
     menuName: string;
+    localeKey?: string;
     parentId?: number;
     sort?: number;
     path?: string;
@@ -615,5 +618,42 @@ declare namespace API {
     appVersion?: string;
     captchaEnabled?: boolean;
     registerEnabled?: boolean;
+  };
+
+  /** 通知公告 */
+  type SysNotice = {
+    noticeId?: number;
+    noticeTitle?: string;
+    noticeType?: string;
+    noticeContent?: string;
+    isTop?: string;
+    status?: string;
+    isRead?: string;
+    createBy?: string;
+    createTime?: string;
+    updateBy?: string;
+    updateTime?: string;
+    remark?: string;
+  };
+
+  /** 通知公告DTO */
+  type SysNoticeDTO = {
+    noticeId?: number;
+    noticeTitle: string;
+    noticeType: string;
+    noticeContent?: string;
+    isTop?: string;
+    status?: string;
+    remark?: string;
+  };
+
+  /** 通知公告查询参数 */
+  type SysNoticeQueryParams = {
+    current?: number;
+    size?: number;
+    noticeTitle?: string;
+    noticeType?: string;
+    status?: string;
+    createBy?: string;
   };
 }

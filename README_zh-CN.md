@@ -85,6 +85,11 @@ Tiny Platform 是一个基于 **Spring Boot 3 + MyBatis Plus + Sa-Token + React 
 - 数据字典（字典类型与字典项管理、缓存支持）
 - 系统参数配置（全局参数配置、缓存刷新）
 
+### 信息管理
+- 通知公告（发布、置顶、状态管理）
+- 公告阅读状态（已读/未读、批量标记）
+- 消息通知（未读数量统计、全部已读）
+
 ### 日志系统
 - 操作日志（基于 AOP 切面自动记录，支持注解配置）
 - 登录日志（记录登录/登出，IP 归属地解析）
@@ -239,6 +244,19 @@ npm run dev
 | GET | /sys/menu/tree | 菜单树 |
 | GET | /sys/dept/tree | 部门树 |
 
+### 信息管理
+| 方法 | 接口 | 说明 |
+|-----|------|-----|
+| POST | /info/notice/page | 通知公告分页查询 |
+| GET | /info/notice/{noticeId} | 公告详情 |
+| POST | /info/notice | 新增公告 |
+| PUT | /info/notice | 修改公告 |
+| DELETE | /info/notice/{noticeId} | 删除公告 |
+| PUT | /info/notice/top | 置顶公告 |
+| POST | /info/notice/read/{noticeId} | 标记已读 |
+| GET | /info/notice/unread-count | 未读数量 |
+| POST | /info/notice/read-all | 全部已读 |
+
 ### 日志管理
 | 方法 | 接口 | 说明 |
 |-----|------|-----|
@@ -303,7 +321,7 @@ npm run dev
 
 ## 后续规划
 
-- [ ] 通知公告模块
+- [x] 通知公告模块
 - [ ] 定时任务模块
 - [ ] 工作流引擎
 

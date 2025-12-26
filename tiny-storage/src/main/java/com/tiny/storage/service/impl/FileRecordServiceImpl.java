@@ -217,9 +217,11 @@ public class FileRecordServiceImpl implements FileRecordService {
 
             fileRecordMapper.insert(record);
 
-            // 设置文件ID
+            // 设置文件ID和预览URL
             uploadVO.setFileId(record.getFileId());
             uploadVO.setFileSize(fileSize);
+            // 使用预览端点URL，确保图片可以正常访问
+            uploadVO.setUrl("/api/storage/file/preview/" + record.getFileId());
 
             return uploadVO;
         } catch (BusinessException e) {
@@ -239,6 +241,9 @@ public class FileRecordServiceImpl implements FileRecordService {
 
         // 格式化文件大小
         vo.setFileSizeDesc(DataSizeUtil.format(record.getFileSize()));
+
+        // 使用预览端点URL
+        vo.setFileUrl("/api/storage/file/preview/" + record.getFileId());
 
         return vo;
     }

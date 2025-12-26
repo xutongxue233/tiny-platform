@@ -85,6 +85,11 @@ Tiny Platform is a modular backend management system built with **Spring Boot 3 
 - Data Dictionary (dictionary type and item management, cache support)
 - System Configuration (global parameters, cache refresh)
 
+### Information Management
+- Notice Announcements (publish, pin to top, status management)
+- Read Status Tracking (read/unread, batch marking)
+- Message Notifications (unread count, mark all as read)
+
 ### Logging System
 - Operation Logs (auto-record via AOP, annotation-based)
 - Login Logs (login/logout tracking, IP geolocation)
@@ -239,6 +244,19 @@ npm run dev
 | GET | /sys/menu/tree | Menu tree |
 | GET | /sys/dept/tree | Department tree |
 
+### Information Management
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /info/notice/page | Notice pagination |
+| GET | /info/notice/{noticeId} | Get notice detail |
+| POST | /info/notice | Create notice |
+| PUT | /info/notice | Update notice |
+| DELETE | /info/notice/{noticeId} | Delete notice |
+| PUT | /info/notice/top | Pin notice to top |
+| POST | /info/notice/read/{noticeId} | Mark as read |
+| GET | /info/notice/unread-count | Get unread count |
+| POST | /info/notice/read-all | Mark all as read |
+
 ### Logging
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -303,7 +321,7 @@ The system uses modular design for easy extension:
 
 ## Roadmap
 
-- [ ] Notification Module
+- [x] Notification Module
 - [ ] Scheduled Tasks Module
 - [ ] Workflow Engine
 

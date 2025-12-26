@@ -31,6 +31,11 @@ public class RouterVO implements Serializable {
     private String name;
 
     /**
+     * 国际化key
+     */
+    private String localeKey;
+
+    /**
      * 路由地址
      */
     private String path;

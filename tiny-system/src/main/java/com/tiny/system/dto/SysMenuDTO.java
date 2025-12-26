@@ -29,6 +29,12 @@ public class SysMenuDTO implements Serializable {
     private String menuName;
 
     /**
+     * 国际化key
+     */
+    @Size(max = 100, message = "国际化key长度不能超过100个字符")
+    private String localeKey;
+
+    /**
      * 父菜单ID
      */
     private Long parentId;

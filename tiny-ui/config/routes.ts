@@ -152,6 +152,20 @@ export default [
     ],
   },
   {
+    path: '/info',
+    hideInMenu: true,
+    routes: [
+      {
+        path: '/info',
+        redirect: '/info/notice',
+      },
+      {
+        path: '/info/notice',
+        component: './info/notice/index',
+      },
+    ],
+  },
+  {
     path: '/',
     redirect: '/welcome',
   },

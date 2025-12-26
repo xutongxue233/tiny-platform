@@ -36,6 +36,11 @@ public class SysMenu extends BaseEntity {
     private String menuName;
 
     /**
+     * 国际化key
+     */
+    private String localeKey;
+
+    /**
      * 父菜单ID
      */
     private Long parentId;

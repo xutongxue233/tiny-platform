@@ -240,6 +240,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
         router.setMenuId(menu.getMenuId());
         router.setParentId(parentId);
         router.setName(menu.getMenuName());
+        router.setLocaleKey(menu.getLocaleKey());
         router.setPath(menu.getPath());
         router.setComponent(menu.getComponent());
         router.setIcon(menu.getIcon());

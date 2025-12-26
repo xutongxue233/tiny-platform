@@ -35,7 +35,9 @@ public class SaTokenConfig implements WebMvcConfigurer {
                         // 字典数据公共接口
                         "/dict/**",
                         // 公开配置接口
-                        "/system/config/public"
+                        "/system/config/public",
+                        // 文件预览接口
+                        "/storage/file/preview/**"
                 );
     }
 }

@@ -125,4 +125,24 @@ public class FileController {
             @Parameter(description = "过期时间（秒）") @RequestParam(defaultValue = "3600") long expireTime) {
         return ResponseResult.ok(fileRecordService.getTempUrl(fileId, expireTime));
     }
+
+    @Operation(summary = "预览文件（无需权限）")
+    @GetMapping("/preview/{fileId}")
+    public void preview(@PathVariable Long fileId, HttpServletResponse response) {
+        try {
+            FileRecordVO record = fileRecordService.getById(fileId);
+            InputStream inputStream = fileRecordService.download(fileId);
+
+            // 设置响应头（内联显示，不下载）
+            response.setContentType(record.getFileType());
+            response.setHeader("Content-Disposition", "inline;filename=" + URLEncoder.encode(record.getOriginalFilename(), StandardCharsets.UTF_8));
+
+            // 写入响应流
+            IoUtil.copy(inputStream, response.getOutputStream());
+            IoUtil.close(inputStream);
+        } catch (Exception e) {
+            log.error("文件预览失败: {}", e.getMessage(), e);
+            throw new RuntimeException("文件预览失败");
+        }
+    }
 }

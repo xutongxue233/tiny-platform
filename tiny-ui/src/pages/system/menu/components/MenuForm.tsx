@@ -201,6 +201,31 @@ const MenuForm: FC<MenuFormProps> = (props) => {
           ]}
         />
 
+        {menuType !== 'F' && (
+          <ProFormText
+            name="localeKey"
+            label={intl.formatMessage({ id: 'pages.menu.localeKey', defaultMessage: '国际化key' })}
+            colProps={{ span: 12 }}
+            placeholder={intl.formatMessage({
+              id: 'pages.menu.localeKeyPlaceholder',
+              defaultMessage: '如: system.user',
+            })}
+            tooltip={intl.formatMessage({
+              id: 'pages.menu.localeKeyTooltip',
+              defaultMessage: '对应菜单国际化文件中的key，如system.user，不填则显示菜单名称',
+            })}
+            rules={[
+              {
+                max: 100,
+                message: intl.formatMessage({
+                  id: 'pages.menu.localeKeyMaxLength',
+                  defaultMessage: '国际化key不能超过100个字符',
+                }),
+              },
+            ]}
+          />
+        )}
+
         <ProFormDigit
           name="sort"
           label={intl.formatMessage({ id: 'pages.menu.sort', defaultMessage: '显示排序' })}

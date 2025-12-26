@@ -41,7 +41,7 @@ const convertRoutersToMenuData = (routers: API.RouterItem[]): MenuDataItem[] => 
   return routers.map((router) => {
     const menuItem: MenuDataItem = {
       key: router.menuId?.toString(),
-      name: router.name,
+      name: router.localeKey || router.name,
       path: router.path,
       icon: router.icon,
       hideInMenu: router.hideInMenu === '1',
@@ -165,7 +165,7 @@ export const layout: RunTimeLayoutConfig = ({
     links: [],
     menuHeaderRender: undefined,
     menu: {
-      locale: false,
+      locale: true,
       params: {
         userId: initialState?.currentUser?.userId,
       },
