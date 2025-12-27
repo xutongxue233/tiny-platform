@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import com.tiny.common.annotation.OperationLog;
+import com.tiny.common.enums.OperationType;
 
 import java.util.List;
 
@@ -36,6 +38,7 @@ public class GenConfigController {
     }
 
     @Operation(summary = "更新单个配置")
+    @OperationLog(module = "生成配置", type = OperationType.UPDATE, desc = "更新单个配置")
     @PutMapping("/{configKey}")
     public ResponseResult<Void> updateConfig(@PathVariable String configKey,
                                              @RequestParam String configValue) {
@@ -44,6 +47,7 @@ public class GenConfigController {
     }
 
     @Operation(summary = "批量更新配置")
+    @OperationLog(module = "生成配置", type = OperationType.UPDATE, desc = "批量更新配置")
     @PutMapping("/batch")
     public ResponseResult<Void> batchUpdate(@RequestBody List<GenConfig> configs) {
         genConfigService.batchUpdateConfig(configs);

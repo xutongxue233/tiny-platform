@@ -17,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.tiny.common.annotation.OperationLog;
+import com.tiny.common.enums.OperationType;
 
 import java.io.InputStream;
 import java.net.URLEncoder;
@@ -51,6 +53,7 @@ public class FileController {
 
     @Operation(summary = "上传文件")
     @SaCheckPermission("storage:file:upload")
+    @OperationLog(module = "文件管理", type = OperationType.INSERT, desc = "上传文件")
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseResult<FileUploadVO> upload(
             @Parameter(description = "文件") @RequestPart("file") MultipartFile file,
@@ -60,6 +63,7 @@ public class FileController {
 
     @Operation(summary = "使用指定配置上传文件")
     @SaCheckPermission("storage:file:upload")
+    @OperationLog(module = "文件管理", type = OperationType.INSERT, desc = "使用配置上传文件")
     @PostMapping(value = "/upload/{configId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseResult<FileUploadVO> uploadWithConfig(
             @Parameter(description = "文件") @RequestPart("file") MultipartFile file,
@@ -69,6 +73,7 @@ public class FileController {
 
     @Operation(summary = "批量上传文件")
     @SaCheckPermission("storage:file:upload")
+    @OperationLog(module = "文件管理", type = OperationType.INSERT, desc = "批量上传文件")
     @PostMapping(value = "/upload/batch", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseResult<List<FileUploadVO>> uploadBatch(
             @Parameter(description = "文件列表") @RequestPart("files") MultipartFile[] files) {
@@ -98,6 +103,7 @@ public class FileController {
 
     @Operation(summary = "删除文件")
     @SaCheckPermission("storage:file:delete")
+    @OperationLog(module = "文件管理", type = OperationType.DELETE, desc = "删除文件")
     @DeleteMapping("/{fileId}")
     public ResponseResult<Void> delete(@PathVariable Long fileId) {
         fileRecordService.delete(fileId);
@@ -106,6 +112,7 @@ public class FileController {
 
     @Operation(summary = "批量删除文件")
     @SaCheckPermission("storage:file:delete")
+    @OperationLog(module = "文件管理", type = OperationType.DELETE, desc = "批量删除文件")
     @DeleteMapping("/batch")
     public ResponseResult<Void> deleteBatch(@RequestBody List<Long> fileIds) {
         fileRecordService.deleteBatch(fileIds);

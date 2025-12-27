@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import com.tiny.common.annotation.OperationLog;
+import com.tiny.common.enums.OperationType;
 
 /**
  * 用户消息中心控制器
@@ -67,6 +69,7 @@ public class MsgCenterController {
      * 删除消息
      */
     @Operation(summary = "删除消息")
+    @OperationLog(module = "消息中心", type = OperationType.DELETE, desc = "删除消息")
     @DeleteMapping("/{recipientId}")
     public ResponseResult<Void> delete(@Parameter(description = "接收记录ID") @PathVariable Long recipientId) {
         recipientService.deleteByUser(recipientId);

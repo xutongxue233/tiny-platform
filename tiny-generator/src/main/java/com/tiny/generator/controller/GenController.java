@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import com.tiny.common.annotation.OperationLog;
+import com.tiny.common.enums.OperationType;
 
 import java.io.IOException;
 import java.util.List;
@@ -48,6 +50,7 @@ private final CodeGeneratorService codeGeneratorService;
     }
 
     @Operation(summary = "导入表结构")
+    @OperationLog(module = "代码生成", type = OperationType.IMPORT, desc = "导入表结构")
     @PostMapping("/import")
     public ResponseResult<Void> importTable(@RequestBody List<String> tableNames) {
         genTableService.importTable(tableNames);
@@ -55,6 +58,7 @@ private final CodeGeneratorService codeGeneratorService;
     }
 
     @Operation(summary = "更新表配置")
+    @OperationLog(module = "代码生成", type = OperationType.UPDATE, desc = "更新表配置")
     @PutMapping
     public ResponseResult<Void> update(@RequestBody GenTable table) {
         genTableService.updateGenTable(table);
@@ -62,6 +66,7 @@ private final CodeGeneratorService codeGeneratorService;
     }
 
     @Operation(summary = "删除表配置")
+    @OperationLog(module = "代码生成", type = OperationType.DELETE, desc = "删除表配置")
     @DeleteMapping("/{tableIds}")
     public ResponseResult<Void> delete(@PathVariable List<Long> tableIds) {
         genTableService.deleteByIds(tableIds);
@@ -69,6 +74,7 @@ private final CodeGeneratorService codeGeneratorService;
     }
 
     @Operation(summary = "同步数据库表结构")
+    @OperationLog(module = "代码生成", type = OperationType.OTHER, desc = "同步数据库表结构")
     @PostMapping("/sync/{tableId}")
     public ResponseResult<Void> syncTable(@PathVariable Long tableId) {
         codeGeneratorService.syncTable(tableId);
@@ -76,6 +82,7 @@ private final CodeGeneratorService codeGeneratorService;
     }
 
     @Operation(summary = "重新生成表配置")
+    @OperationLog(module = "代码生成", type = OperationType.OTHER, desc = "重新生成表配置")
     @PostMapping("/regenerate/{tableId}")
     public ResponseResult<Void> regenerateConfig(@PathVariable Long tableId) {
         genTableService.regenerateConfig(tableId);
@@ -83,6 +90,7 @@ private final CodeGeneratorService codeGeneratorService;
     }
 
     @Operation(summary = "批量重新生成表配置")
+    @OperationLog(module = "代码生成", type = OperationType.OTHER, desc = "批量重新生成表配置")
     @PostMapping("/batchRegenerate")
     public ResponseResult<Void> batchRegenerateConfig(@RequestBody List<Long> tableIds) {
         genTableService.batchRegenerateConfig(tableIds);
@@ -90,6 +98,7 @@ private final CodeGeneratorService codeGeneratorService;
     }
 
     @Operation(summary = "批量同步数据库表结构")
+    @OperationLog(module = "代码生成", type = OperationType.OTHER, desc = "批量同步数据库表结构")
     @PostMapping("/batchSync")
     public ResponseResult<Void> batchSyncTable(@RequestBody List<Long> tableIds) {
         for (Long tableId : tableIds) {
@@ -120,6 +129,7 @@ private final CodeGeneratorService codeGeneratorService;
     }
 
     @Operation(summary = "生成代码到路径")
+    @OperationLog(module = "代码生成", type = OperationType.OTHER, desc = "生成代码到路径")
     @PostMapping("/genToPath/{tableId}")
     public ResponseResult<Void> genToPath(@PathVariable Long tableId,
                                           @RequestParam(required = false) String path) {

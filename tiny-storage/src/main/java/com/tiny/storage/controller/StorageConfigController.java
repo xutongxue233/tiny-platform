@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import com.tiny.common.annotation.OperationLog;
+import com.tiny.common.enums.OperationType;
 
 import java.util.Arrays;
 import java.util.List;
@@ -53,6 +55,7 @@ public class StorageConfigController {
 
     @Operation(summary = "新增存储配置")
     @SaCheckPermission("storage:config:add")
+    @OperationLog(module = "存储配置", type = OperationType.INSERT, desc = "新增存储配置")
     @PostMapping
     public ResponseResult<Void> add(@Valid @RequestBody StorageConfigDTO dto) {
         storageConfigService.add(dto);
@@ -61,6 +64,7 @@ public class StorageConfigController {
 
     @Operation(summary = "修改存储配置")
     @SaCheckPermission("storage:config:edit")
+    @OperationLog(module = "存储配置", type = OperationType.UPDATE, desc = "修改存储配置")
     @PutMapping
     public ResponseResult<Void> update(@Valid @RequestBody StorageConfigDTO dto) {
         storageConfigService.update(dto);
@@ -69,6 +73,7 @@ public class StorageConfigController {
 
     @Operation(summary = "删除存储配置")
     @SaCheckPermission("storage:config:delete")
+    @OperationLog(module = "存储配置", type = OperationType.DELETE, desc = "删除存储配置")
     @DeleteMapping("/{configId}")
     public ResponseResult<Void> delete(@PathVariable Long configId) {
         storageConfigService.delete(configId);
@@ -77,6 +82,7 @@ public class StorageConfigController {
 
     @Operation(summary = "设置默认存储配置")
     @SaCheckPermission("storage:config:edit")
+    @OperationLog(module = "存储配置", type = OperationType.UPDATE, desc = "设置默认存储配置")
     @PutMapping("/default/{configId}")
     public ResponseResult<Void> setDefault(@PathVariable Long configId) {
         storageConfigService.setDefault(configId);
@@ -92,6 +98,7 @@ public class StorageConfigController {
 
     @Operation(summary = "刷新存储服务")
     @SaCheckPermission("storage:config:edit")
+    @OperationLog(module = "存储配置", type = OperationType.OTHER, desc = "刷新存储服务")
     @PutMapping("/refresh/{configId}")
     public ResponseResult<Void> refresh(@PathVariable Long configId) {
         storageConfigService.refreshStorage(configId);
