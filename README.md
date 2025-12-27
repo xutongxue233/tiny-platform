@@ -85,11 +85,6 @@ Tiny Platform is a modular backend management system built with **Spring Boot 3 
 - Data Dictionary (dictionary type and item management, cache support)
 - System Configuration (global parameters, cache refresh)
 
-### Information Management
-- Notice Announcements (publish, pin to top, status management)
-- Read Status Tracking (read/unread, batch marking)
-- Message Notifications (unread count, mark all as read)
-
 ### Message Center
 - In-app Messages (system messages, personal messages)
 - WebSocket Real-time Push
@@ -118,6 +113,12 @@ Tiny Platform is a modular backend management system built with **Spring Boot 3 
 - Customizable code templates (Entity, Mapper, Service, Controller, DTO, VO)
 - Frontend code generation (React pages, API services)
 - Generator configuration management
+
+### Data Export
+- Async export task management
+- Multiple export formats (Excel, CSV)
+- Export task progress tracking
+- Export history and download management
 
 ## Project Structure
 
@@ -160,6 +161,10 @@ tiny-platform/
 │   ├── config/           # WebSocket configuration
 │   ├── handler/          # Message handlers
 │   └── service/          # WebSocket services
+├── tiny-export/          # Export module
+│   ├── entity/           # Export task entities
+│   ├── service/          # Export services
+│   └── controller/       # Export APIs
 ├── tiny-admin/           # Main startup module
 │   ├── TinyAdminApplication
 │   └── application.yml
@@ -168,10 +173,10 @@ tiny-platform/
 │   ├── config/           # Configuration
 │   └── mock/             # Mock data
 └── docs/                 # Documentation
-    └── init.sql          # Database init script
+    └── sql/              # Database scripts (modular)
 ```
 
-**Module Dependencies**: tiny-admin -> tiny-system -> tiny-message -> tiny-websocket -> tiny-generator -> tiny-storage -> tiny-security -> tiny-core -> tiny-common
+**Module Dependencies**: tiny-admin -> tiny-system -> tiny-export -> tiny-message -> tiny-websocket -> tiny-generator -> tiny-storage -> tiny-security -> tiny-core -> tiny-common
 
 ## Quick Start
 
@@ -186,7 +191,7 @@ tiny-platform/
 
 1. Create database and execute init script
 ```bash
-mysql -u root -p < docs/init.sql
+mysql -u root -p < docs/sql/modules/install-all.sql
 ```
 
 2. Modify configuration in `tiny-admin/src/main/resources/application.yml`
@@ -258,19 +263,6 @@ npm run dev
 | GET | /sys/menu/tree | Menu tree |
 | GET | /sys/dept/tree | Department tree |
 
-### Information Management
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | /info/notice/page | Notice pagination |
-| GET | /info/notice/{noticeId} | Get notice detail |
-| POST | /info/notice | Create notice |
-| PUT | /info/notice | Update notice |
-| DELETE | /info/notice/{noticeId} | Delete notice |
-| PUT | /info/notice/top | Pin notice to top |
-| POST | /info/notice/read/{noticeId} | Mark as read |
-| GET | /info/notice/unread-count | Get unread count |
-| POST | /info/notice/read-all | Mark all as read |
-
 ### Logging
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -327,6 +319,14 @@ npm run dev
 | DELETE | /msg/message/batch | Batch delete messages |
 | GET | /msg/message/unread-count | Get unread message count |
 
+### Export Tasks
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /export/task/page | Export task pagination |
+| POST | /export/task | Create export task |
+| GET | /export/task/download/{taskId} | Download export file |
+| DELETE | /export/task/{taskId} | Delete export task |
+
 ## Extension Guide
 
 The system uses modular design for easy extension:
@@ -344,11 +344,12 @@ The system uses modular design for easy extension:
 4. **Developer Friendly** - Comprehensive API docs, utility libraries, parameter validation
 5. **Production Ready** - Logging, monitoring, distributed deployment support
 6. **Flexible Storage** - Pluggable storage backends with factory pattern
+7. **Async Export** - Background export tasks with progress tracking
 
 ## Roadmap
 
-- [x] Notification Module
 - [x] Message Center Module
+- [x] Export Task Module
 - [ ] Scheduled Tasks Module
 - [ ] Workflow Engine
 

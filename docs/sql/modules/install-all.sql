@@ -40,20 +40,20 @@ SOURCE 03-generator/schema.sql;
 SOURCE 03-generator/data.sql;
 
 -- ============================================
--- 04-notice: Notice Module (Optional)
--- ============================================
--- Notice schema
-SOURCE 04-notice/schema.sql;
--- Notice data
-SOURCE 04-notice/data.sql;
-
--- ============================================
 -- 05-message: Message Module (Optional)
 -- ============================================
 -- Message schema
 SOURCE 05-message/schema.sql;
 -- Message data
 SOURCE 05-message/data.sql;
+
+-- ============================================
+-- 06-export: Export Module (Optional)
+-- ============================================
+-- Export schema
+SOURCE 06-export/schema.sql;
+-- Export data
+SOURCE 06-export/data.sql;
 
 SET FOREIGN_KEY_CHECKS = 1;
 

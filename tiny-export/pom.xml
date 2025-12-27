@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.tiny</groupId>
+        <artifactId>tiny-platform</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>tiny-export</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Tiny Export</name>
+    <description>数据导入导出模块：支持Excel导入导出、异步大数据量导出、导出任务管理</description>
+
+    <dependencies>
+        <!-- System模块(用于导入导出业务) -->
+        <dependency>
+            <groupId>com.tiny</groupId>
+            <artifactId>tiny-system</artifactId>
+        </dependency>
+
+        <!-- Storage模块(用于文件存储) -->
+        <dependency>
+            <groupId>com.tiny</groupId>
+            <artifactId>tiny-storage</artifactId>
+        </dependency>
+
+        <!-- Knife4j -->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- EasyExcel -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+        </dependency>
+    </dependencies>
+</project>

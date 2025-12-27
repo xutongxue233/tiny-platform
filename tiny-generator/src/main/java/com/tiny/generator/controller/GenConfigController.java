@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import com.tiny.common.annotation.OperationLog;
-import com.tiny.common.enums.OperationType;
+import com.tiny.common.annotation.OperationLog.OperationType;
 
 import java.util.List;
 

@@ -32,6 +32,7 @@ CREATE TABLE `sys_storage_config`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '0' COMMENT '删除标志(0正常 1删除)',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '备注',
+  `version` int NULL DEFAULT 0 COMMENT '乐观锁版本号',
   PRIMARY KEY (`config_id`) USING BTREE,
   INDEX `idx_storage_type`(`storage_type` ASC) USING BTREE,
   INDEX `idx_is_default`(`is_default` ASC) USING BTREE
@@ -59,6 +60,7 @@ CREATE TABLE `sys_file_record`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '0' COMMENT '删除标志(0正常 1删除)',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '备注',
+  `version` int NULL DEFAULT 0 COMMENT '乐观锁版本号',
   PRIMARY KEY (`file_id`) USING BTREE,
   INDEX `idx_config_id`(`config_id` ASC) USING BTREE,
   INDEX `idx_storage_type`(`storage_type` ASC) USING BTREE,

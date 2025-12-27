@@ -3,6 +3,7 @@ package com.tiny.common.core.model;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.Version;
 import lombok.Data;
 
 import java.io.Serial;
@@ -52,4 +53,10 @@ public class BaseEntity implements Serializable {
      * 备注
      */
     private String remark;
+
+    /**
+     * 乐观锁版本号
+     */
+    @Version
+    private Integer version;
 }

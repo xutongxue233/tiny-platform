@@ -13,6 +13,13 @@ import {
   deleteUserBatch,
   getUserPage,
 } from '@/services/ant-design-pro/api';
+import {
+  exportUserData,
+  exportUserDataAsync,
+  getUserImportTemplateUrl,
+  importUserData,
+} from '@/services/ant-design-pro/export';
+import { ExportButton, ImportButton } from '@/components/ExportImport';
 import UserForm from './components/UserForm';
 import ResetPasswordForm from './components/ResetPasswordForm';
 import DeptTree from './components/DeptTree';
@@ -238,6 +245,33 @@ const UserList: React.FC = () => {
             toolBarRender={() => [
               access.hasPermission('system:user:add') && (
                 <UserForm key="create" onOk={() => actionRef.current?.reload?.()} />
+              ),
+              access.hasPermission('system:user:export') && (
+                <ExportButton
+                  key="export"
+                  buttonText={intl.formatMessage({ id: 'pages.user.export', defaultMessage: '导出' })}
+                  fileName="用户数据"
+                  showAsync={true}
+                  onExportSync={async () => {
+                    return await exportUserData({ deptId: selectedDeptId });
+                  }}
+                  onExportAsync={async () => {
+                    const res = await exportUserDataAsync({ deptId: selectedDeptId });
+                    return res.data!;
+                  }}
+                />
+              ),
+              access.hasPermission('system:user:import') && (
+                <ImportButton
+                  key="import"
+                  buttonText={intl.formatMessage({ id: 'pages.user.import', defaultMessage: '导入' })}
+                  templateUrl={getUserImportTemplateUrl()}
+                  onImport={async (file) => {
+                    const res = await importUserData(file);
+                    return res.data!;
+                  }}
+                  onSuccess={() => actionRef.current?.reload?.()}
+                />
               ),
             ].filter(Boolean)}
             request={async (params) => {

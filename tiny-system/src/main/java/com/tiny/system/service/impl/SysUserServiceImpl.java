@@ -35,9 +35,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -89,13 +91,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException("用户名已存在");
         }
 
-        // 检查手机号是否已存在
-        if (StrUtil.isNotBlank(dto.getPhone()) && checkPhoneExists(dto.getPhone(), null)) {
+        // 合并检查手机号和邮箱（优化：1次查询代替2次）
+        int conflict = checkUserFieldsConflict(dto.getPhone(), dto.getEmail(), null);
+        if (conflict == 1) {
             throw new BusinessException("手机号已存在");
         }
-
-        // 检查邮箱是否已存在
-        if (StrUtil.isNotBlank(dto.getEmail()) && checkEmailExists(dto.getEmail(), null)) {
+        if (conflict == 2) {
             throw new BusinessException("邮箱已存在");
         }
 
@@ -122,18 +123,17 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException("用户不存在");
         }
 
-        // 检查用户名是否已存在
-        if (checkUsernameExists(dto.getUsername(), dto.getUserId())) {
-            throw new BusinessException("用户名已存在");
+        // 禁止修改用户名
+        if (!user.getUsername().equals(dto.getUsername())) {
+            throw new BusinessException("不允许修改用户名");
         }
 
-        // 检查手机号是否已存在
-        if (StrUtil.isNotBlank(dto.getPhone()) && checkPhoneExists(dto.getPhone(), dto.getUserId())) {
+        // 合并检查手机号和邮箱（优化：1次查询代替2次）
+        int conflict = checkUserFieldsConflict(dto.getPhone(), dto.getEmail(), dto.getUserId());
+        if (conflict == 1) {
             throw new BusinessException("手机号已存在");
         }
-
-        // 检查邮箱是否已存在
-        if (StrUtil.isNotBlank(dto.getEmail()) && checkEmailExists(dto.getEmail(), dto.getUserId())) {
+        if (conflict == 2) {
             throw new BusinessException("邮箱已存在");
         }
 
@@ -146,11 +146,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         this.updateById(user);
 
-        // 更新用户角色关联
-        userRoleMapper.delete(Wrappers.<SysUserRole>lambdaQuery().eq(SysUserRole::getUserId, dto.getUserId()));
-        if (CollUtil.isNotEmpty(dto.getRoleIds())) {
-            saveUserRoles(dto.getUserId(), dto.getRoleIds());
-        }
+        // 差异化更新用户角色关联（优化：只处理变化的数据）
+        updateUserRolesDiff(dto.getUserId(), dto.getRoleIds());
     }
 
     @Override
@@ -276,22 +273,38 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         return this.count(wrapper) > 0;
     }
 
-    private boolean checkPhoneExists(String phone, Long excludeUserId) {
+    /**
+     * 批量检查用户唯一字段（合并查询优化）
+     * @return 0-无冲突, 1-手机号冲突, 2-邮箱冲突
+     */
+    private int checkUserFieldsConflict(String phone, String email, Long excludeUserId) {
+        if (StrUtil.isBlank(phone) && StrUtil.isBlank(email)) {
+            return 0;
+        }
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysUser::getPhone, phone);
+        wrapper.and(w -> {
+            boolean first = true;
+            if (StrUtil.isNotBlank(phone)) {
+                w.eq(SysUser::getPhone, phone);
+                first = false;
+            }
+            if (StrUtil.isNotBlank(email)) {
+                if (first) {
+                    w.eq(SysUser::getEmail, email);
+                } else {
+                    w.or().eq(SysUser::getEmail, email);
+                }
+            }
+        });
         if (excludeUserId != null) {
             wrapper.ne(SysUser::getUserId, excludeUserId);
         }
-        return this.count(wrapper) > 0;
-    }
-
-    private boolean checkEmailExists(String email, Long excludeUserId) {
-        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysUser::getEmail, email);
-        if (excludeUserId != null) {
-            wrapper.ne(SysUser::getUserId, excludeUserId);
+        List<SysUser> conflicts = this.list(wrapper);
+        for (SysUser u : conflicts) {
+            if (phone != null && phone.equals(u.getPhone())) return 1;
+            if (email != null && email.equals(u.getEmail())) return 2;
         }
-        return this.count(wrapper) > 0;
+        return 0;
     }
 
     /**
@@ -346,6 +359,50 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 })
                 .collect(Collectors.toList());
         Db.saveBatch(userRoles);
+    }
+
+    /**
+     * 差异化更新用户角色关联（只删除移除的，只添加新增的）
+     */
+    private void updateUserRolesDiff(Long userId, List<Long> newRoleIds) {
+        // 查询当前已有的角色ID
+        Set<Long> existingRoleIds = userRoleMapper.selectList(
+                Wrappers.<SysUserRole>lambdaQuery()
+                        .eq(SysUserRole::getUserId, userId)
+                        .select(SysUserRole::getRoleId)
+        ).stream().map(SysUserRole::getRoleId).collect(Collectors.toSet());
+
+        // 处理空列表情况
+        if (CollUtil.isEmpty(newRoleIds)) {
+            if (CollUtil.isNotEmpty(existingRoleIds)) {
+                userRoleMapper.delete(Wrappers.<SysUserRole>lambdaQuery().eq(SysUserRole::getUserId, userId));
+            }
+            return;
+        }
+
+        Set<Long> newRoleIdSet = new HashSet<>(newRoleIds);
+
+        // 计算需要删除的（存在于旧数据但不在新数据中）
+        List<Long> toDelete = existingRoleIds.stream()
+                .filter(id -> !newRoleIdSet.contains(id))
+                .collect(Collectors.toList());
+
+        // 计算需要新增的（存在于新数据但不在旧数据中）
+        List<Long> toAdd = newRoleIds.stream()
+                .filter(id -> !existingRoleIds.contains(id))
+                .collect(Collectors.toList());
+
+        // 批量删除
+        if (CollUtil.isNotEmpty(toDelete)) {
+            userRoleMapper.delete(Wrappers.<SysUserRole>lambdaQuery()
+                    .eq(SysUserRole::getUserId, userId)
+                    .in(SysUserRole::getRoleId, toDelete));
+        }
+
+        // 批量新增
+        if (CollUtil.isNotEmpty(toAdd)) {
+            saveUserRoles(userId, toAdd);
+        }
     }
 
     /**

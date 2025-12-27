@@ -1,7 +1,7 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
 import { useIntl, useRequest } from '@umijs/max';
-import { Badge, Button, Drawer, message, Popconfirm, Segmented, Space, Tag, Typography } from 'antd';
+import { Badge, Button, Drawer, message, Popconfirm, Space, Tag, Typography } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 import {
   deleteUserMessage,
@@ -9,8 +9,15 @@ import {
   markAllMessageRead,
   markMessageRead,
 } from '@/services/ant-design-pro/message';
+import { Viewer } from '@bytemd/react';
+import gfm from '@bytemd/plugin-gfm';
+import highlight from '@bytemd/plugin-highlight';
+import 'bytemd/dist/index.css';
+import 'highlight.js/styles/github.css';
 
 const { Paragraph, Title } = Typography;
+
+const plugins = [gfm(), highlight()];
 
 const MessageCenter: React.FC = () => {
   const actionRef = useRef<ActionType | null>(null);
@@ -101,6 +108,7 @@ const MessageCenter: React.FC = () => {
       render: (dom, entity) => (
         <Space>
           {entity.isRead === '0' && <Badge status="error" />}
+          {entity.isTop === '1' && <Tag color="red">TOP</Tag>}
           <a onClick={() => handleViewDetail(entity)}>{dom}</a>
           {entity.priority !== undefined && entity.priority > 0 && (
             <Tag color={priorityConfig[entity.priority]?.color}>
@@ -275,6 +283,7 @@ const MessageCenter: React.FC = () => {
           <div>
             <div style={{ marginBottom: 16 }}>
               <Space wrap>
+                {currentRow.isTop === '1' && <Tag color="red">TOP</Tag>}
                 <Tag
                   color={
                     currentRow.messageType === 'system'
@@ -310,18 +319,32 @@ const MessageCenter: React.FC = () => {
                 </span>
               </Space>
             </div>
-            <div
-              style={{
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                padding: '16px',
-                background: '#f5f5f5',
-                borderRadius: '4px',
-                minHeight: '200px',
-              }}
-            >
-              {currentRow.content}
-            </div>
+            {currentRow.messageType === 'notice' ? (
+              <div
+                className="markdown-body"
+                style={{
+                  padding: '16px',
+                  background: '#f5f5f5',
+                  borderRadius: '4px',
+                  minHeight: '200px',
+                }}
+              >
+                <Viewer value={currentRow.content || ''} plugins={plugins} />
+              </div>
+            ) : (
+              <div
+                style={{
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  padding: '16px',
+                  background: '#f5f5f5',
+                  borderRadius: '4px',
+                  minHeight: '200px',
+                }}
+              >
+                {currentRow.content}
+              </div>
+            )}
           </div>
         )}
       </Drawer>

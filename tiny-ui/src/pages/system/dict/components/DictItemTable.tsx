@@ -9,6 +9,12 @@ import {
   deleteDictItemBatch,
   getDictItemPage,
 } from '@/services/ant-design-pro/dict';
+import {
+  exportDictItemData,
+  getDictItemImportTemplateUrl,
+  importDictItemData,
+} from '@/services/ant-design-pro/export';
+import { ExportButton, ImportButton } from '@/components/ExportImport';
 import DictItemForm from './DictItemForm';
 
 interface DictItemTableProps {
@@ -206,6 +212,32 @@ const DictItemTable = forwardRef<ActionType, DictItemTableProps>(
                 key="create"
                 dictCode={dictCode}
                 onOk={() => {
+                  actionRef.current?.reload();
+                  onChange();
+                }}
+              />
+            ),
+            access.hasPermission('system:dict:export') && (
+              <ExportButton
+                key="export"
+                buttonText={intl.formatMessage({ id: 'pages.dict.export', defaultMessage: '导出' })}
+                fileName="字典数据"
+                showAsync={false}
+                onExportSync={async () => {
+                  return await exportDictItemData({ dictCode });
+                }}
+              />
+            ),
+            access.hasPermission('system:dict:import') && (
+              <ImportButton
+                key="import"
+                buttonText={intl.formatMessage({ id: 'pages.dict.import', defaultMessage: '导入' })}
+                templateUrl={getDictItemImportTemplateUrl()}
+                onImport={async (file) => {
+                  const res = await importDictItemData(file);
+                  return res.data!;
+                }}
+                onSuccess={() => {
                   actionRef.current?.reload();
                   onChange();
                 }}

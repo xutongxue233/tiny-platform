@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
 
+    <!-- 禁用Logback内部状态信息输出 -->
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+
     <!-- 引入Spring Boot默认配置，获取颜色转换器支持 -->
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 

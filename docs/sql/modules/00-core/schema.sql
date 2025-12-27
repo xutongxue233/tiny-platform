@@ -28,6 +28,7 @@ CREATE TABLE `sys_user`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '0' COMMENT '删除标志(0正常 1删除)',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '备注',
+  `version` int NULL DEFAULT 0 COMMENT '乐观锁版本号',
   `super_admin` tinyint NULL DEFAULT 0 COMMENT '是否超级管理员(0否 1是)',
   PRIMARY KEY (`user_id`) USING BTREE,
   UNIQUE INDEX `uk_username`(`username` ASC) USING BTREE
@@ -50,6 +51,7 @@ CREATE TABLE `sys_role`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '0' COMMENT '删除标志(0正常 1删除)',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '备注',
+  `version` int NULL DEFAULT 0 COMMENT '乐观锁版本号',
   PRIMARY KEY (`role_id`) USING BTREE,
   UNIQUE INDEX `uk_role_key`(`role_key` ASC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '角色表' ROW_FORMAT = Dynamic;
@@ -74,6 +76,7 @@ CREATE TABLE `sys_dept`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '0' COMMENT '删除标志(0正常 1删除)',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '备注',
+  `version` int NULL DEFAULT 0 COMMENT '乐观锁版本号',
   PRIMARY KEY (`dept_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '部门表' ROW_FORMAT = Dynamic;
 
@@ -106,6 +109,7 @@ CREATE TABLE `sys_menu`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '0' COMMENT '删除标志(0正常 1删除)',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '备注',
+  `version` int NULL DEFAULT 0 COMMENT '乐观锁版本号',
   PRIMARY KEY (`menu_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '菜单表' ROW_FORMAT = Dynamic;
 
@@ -160,6 +164,7 @@ CREATE TABLE `sys_dict_type`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志(0正常 1删除)',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
+  `version` int NULL DEFAULT 0 COMMENT '乐观锁版本号',
   PRIMARY KEY (`dict_id`) USING BTREE,
   UNIQUE INDEX `uk_dict_code`(`dict_code` ASC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '字典类型表' ROW_FORMAT = Dynamic;
@@ -184,6 +189,7 @@ CREATE TABLE `sys_dict_item`  (
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志(0正常 1删除)',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
+  `version` int NULL DEFAULT 0 COMMENT '乐观锁版本号',
   PRIMARY KEY (`item_id`) USING BTREE,
   INDEX `idx_dict_code`(`dict_code` ASC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '字典数据表' ROW_FORMAT = Dynamic;
@@ -207,6 +213,7 @@ CREATE TABLE `sys_config` (
   `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '0' COMMENT '删除标志(0正常 1删除)',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '备注',
+  `version` int NULL DEFAULT 0 COMMENT '乐观锁版本号',
   PRIMARY KEY (`config_id`) USING BTREE,
   UNIQUE INDEX `uk_config_key`(`config_key` ASC) USING BTREE,
   INDEX `idx_config_group`(`config_group` ASC) USING BTREE

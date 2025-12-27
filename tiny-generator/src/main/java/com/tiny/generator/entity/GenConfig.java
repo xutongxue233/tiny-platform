@@ -3,18 +3,19 @@ package com.tiny.generator.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.tiny.common.core.model.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
-import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * 代码生成器配置
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("gen_config")
-public class GenConfig implements Serializable {
+public class GenConfig extends BaseEntity {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -39,26 +40,6 @@ public class GenConfig implements Serializable {
      * 配置描述
      */
     private String configDesc;
-
-    /**
-     * 创建者
-     */
-    private String createBy;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 更新者
-     */
-    private String updateBy;
-
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
 
     // 配置键常量
     public static final String KEY_AUTHOR = "gen.author";

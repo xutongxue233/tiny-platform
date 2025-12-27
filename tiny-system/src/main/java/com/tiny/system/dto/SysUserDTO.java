@@ -30,9 +30,8 @@ public class SysUserDTO implements Serializable {
     private String username;
 
     /**
-     * 密码
+     * 密码（长度限制由系统配置动态控制，参见sys.password.minLength/maxLength）
      */
-    @Size(min = 6, max = 20, message = "密码长度必须在6-20个字符之间")
     private String password;
 
     /**

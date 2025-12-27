@@ -87,6 +87,10 @@ export default [
         path: '/system/config',
         component: './system/config/index',
       },
+      {
+        path: '/system/exportTask',
+        component: './system/exportTask/index',
+      },
     ],
   },
   {
@@ -152,26 +156,12 @@ export default [
     ],
   },
   {
-    path: '/info',
-    hideInMenu: true,
-    routes: [
-      {
-        path: '/info',
-        redirect: '/info/notice',
-      },
-      {
-        path: '/info/notice',
-        component: './info/notice/index',
-      },
-    ],
-  },
-  {
     path: '/message',
     hideInMenu: true,
     routes: [
       {
         path: '/message',
-        redirect: '/message/template',
+        redirect: '/message/list',
       },
       {
         path: '/message/template',

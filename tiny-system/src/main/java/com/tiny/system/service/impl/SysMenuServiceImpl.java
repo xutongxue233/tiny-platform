@@ -1,7 +1,9 @@
 package com.tiny.system.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -20,12 +22,16 @@ import com.tiny.system.service.SysMenuService;
 import com.tiny.system.vo.RouterVO;
 import com.tiny.system.vo.SysMenuVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +43,10 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 
     private final SysRoleMenuMapper roleMenuMapper;
     private final SysUserMapper userMapper;
+    private final StringRedisTemplate redisTemplate;
+
+    private static final String USER_MENU_CACHE_KEY = "user:menus:";
+    private static final long CACHE_EXPIRE_MINUTES = 30;
 
     @Override
     public List<SysMenuVO> listAll(SysMenuQueryDTO queryDTO) {
@@ -58,7 +68,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
     @Override
     public List<SysMenuVO> tree(SysMenuQueryDTO queryDTO) {
         List<SysMenuVO> menus = listAll(queryDTO);
-        return buildTree(menus, 0L);
+        return buildTree(menus);
     }
 
     @Override
@@ -87,6 +97,9 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
         menu.setStatus(StrUtil.isBlank(dto.getStatus()) ? StatusEnum.NORMAL.getCode() : dto.getStatus());
 
         this.save(menu);
+
+        // 清除所有用户的菜单缓存
+        clearAllUserMenuCache();
     }
 
     @Override
@@ -118,6 +131,9 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
         menu.setParentId(dto.getParentId() != null ? dto.getParentId() : 0L);
 
         this.updateById(menu);
+
+        // 清除所有用户的菜单缓存
+        clearAllUserMenuCache();
     }
 
     @Override
@@ -145,18 +161,30 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
         }
 
         this.removeById(menuId);
+
+        // 清除所有用户的菜单缓存
+        clearAllUserMenuCache();
     }
 
     /**
-     * 构建菜单树
+     * 构建菜单树 - O(n)复杂度
      */
-    private List<SysMenuVO> buildTree(List<SysMenuVO> menus, Long parentId) {
+    private List<SysMenuVO> buildTree(List<SysMenuVO> menus) {
+        Map<Long, SysMenuVO> menuMap = menus.stream()
+                .collect(Collectors.toMap(SysMenuVO::getMenuId, vo -> vo));
+
         List<SysMenuVO> tree = new ArrayList<>();
         for (SysMenuVO menu : menus) {
-            if (parentId.equals(menu.getParentId())) {
-                List<SysMenuVO> children = buildTree(menus, menu.getMenuId());
-                menu.setChildren(children);
+            if (menu.getParentId() == null || menu.getParentId() == 0L) {
                 tree.add(menu);
+                continue;
+            }
+            SysMenuVO parent = menuMap.get(menu.getParentId());
+            if (parent != null) {
+                if (parent.getChildren() == null) {
+                    parent.setChildren(new ArrayList<>());
+                }
+                parent.getChildren().add(menu);
             }
         }
         return tree;
@@ -208,6 +236,14 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
     @Override
     public List<RouterVO> getUserRouters() {
         Long userId = LoginUserUtil.getUserId();
+        String cacheKey = USER_MENU_CACHE_KEY + userId;
+
+        // 尝试从缓存获取
+        String cached = redisTemplate.opsForValue().get(cacheKey);
+        if (StrUtil.isNotBlank(cached)) {
+            return JSON.parseArray(cached, RouterVO.class);
+        }
+
         List<SysMenu> menus;
 
         // 检查是否为超级管理员
@@ -229,7 +265,26 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
                 .map(menu -> menuToRouter(menu, menu.getParentId()))
                 .collect(Collectors.toList());
 
-        return buildRouterTree(routerList, 0L);
+        List<RouterVO> result = buildRouterTree(routerList);
+
+        // 写入缓存
+        redisTemplate.opsForValue().set(cacheKey, JSON.toJSONString(result),
+                CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
+
+        return result;
+    }
+
+    @Override
+    public void clearUserMenuCache(Long userId) {
+        redisTemplate.delete(USER_MENU_CACHE_KEY + userId);
+    }
+
+    @Override
+    public void clearAllUserMenuCache() {
+        Set<String> keys = redisTemplate.keys(USER_MENU_CACHE_KEY + "*");
+        if (CollUtil.isNotEmpty(keys)) {
+            redisTemplate.delete(keys);
+        }
     }
 
     /**
@@ -257,17 +312,24 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
     }
 
     /**
-     * 构建路由树
+     * 构建路由树 - O(n)复杂度
      */
-    private List<RouterVO> buildRouterTree(List<RouterVO> routers, Long parentId) {
+    private List<RouterVO> buildRouterTree(List<RouterVO> routers) {
+        Map<Long, RouterVO> routerMap = routers.stream()
+                .collect(Collectors.toMap(RouterVO::getMenuId, vo -> vo));
+
         List<RouterVO> tree = new ArrayList<>();
         for (RouterVO router : routers) {
-            if (parentId.equals(router.getParentId())) {
-                List<RouterVO> children = buildRouterTree(routers, router.getMenuId());
-                if (!children.isEmpty()) {
-                    router.setChildren(children);
-                }
+            if (router.getParentId() == null || router.getParentId() == 0L) {
                 tree.add(router);
+                continue;
+            }
+            RouterVO parent = routerMap.get(router.getParentId());
+            if (parent != null) {
+                if (parent.getChildren() == null) {
+                    parent.setChildren(new ArrayList<>());
+                }
+                parent.getChildren().add(router);
             }
         }
         return tree;

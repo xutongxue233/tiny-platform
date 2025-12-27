@@ -34,6 +34,9 @@ const MessageManagement: React.FC = () => {
     user: {
       text: intl.formatMessage({ id: 'pages.message.list.messageType.user' }),
     },
+    notice: {
+      text: intl.formatMessage({ id: 'pages.message.list.messageType.notice' }),
+    },
   };
 
   const channelValueEnum = {
@@ -143,13 +146,23 @@ const MessageManagement: React.FC = () => {
       valueType: 'select',
       valueEnum: messageTypeValueEnum,
       width: 100,
-      render: (_, record) => (
-        <Tag color={record.messageType === 'system' ? 'blue' : 'green'}>
-          {record.messageType === 'system'
-            ? intl.formatMessage({ id: 'pages.message.list.messageType.system' })
-            : intl.formatMessage({ id: 'pages.message.list.messageType.user' })}
-        </Tag>
-      ),
+      render: (_, record) => {
+        const colorMap: Record<string, string> = {
+          system: 'blue',
+          user: 'green',
+          notice: 'orange',
+        };
+        const textMap: Record<string, string> = {
+          system: intl.formatMessage({ id: 'pages.message.list.messageType.system' }),
+          user: intl.formatMessage({ id: 'pages.message.list.messageType.user' }),
+          notice: intl.formatMessage({ id: 'pages.message.list.messageType.notice' }),
+        };
+        return (
+          <Tag color={colorMap[record.messageType || 'system']}>
+            {textMap[record.messageType || 'system']}
+          </Tag>
+        );
+      },
     },
     {
       title: intl.formatMessage({ id: 'pages.message.list.channel' }),
@@ -266,6 +279,9 @@ const MessageManagement: React.FC = () => {
           [
             access.hasPermission('message:list:send') && (
               <MessageForm key="send" onOk={() => actionRef.current?.reload?.()} />
+            ),
+            access.hasPermission('message:list:send') && (
+              <MessageForm key="notice" mode="notice" onOk={() => actionRef.current?.reload?.()} />
             ),
           ].filter(Boolean)
         }

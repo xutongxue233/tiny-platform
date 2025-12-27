@@ -710,6 +710,8 @@ declare namespace API {
     bizType?: string;
     bizId?: string;
     priority?: number;
+    isTop?: string;
+    noticeType?: string;
     status?: string;
     createBy?: string;
     createTime?: string;
@@ -746,6 +748,8 @@ declare namespace API {
     priority?: number;
     variables?: Record<string, any>;
     broadcast?: boolean;
+    isTop?: string;
+    noticeType?: string;
   };
 
   /** 发送记录 */
@@ -821,6 +825,8 @@ declare namespace API {
     title?: string;
     content?: string;
     priority?: number;
+    isTop?: string;
+    noticeType?: string;
     isRead?: string;
     readTime?: string;
     createTime?: string;
@@ -834,5 +840,54 @@ declare namespace API {
     messageType?: string;
     isRead?: string;
     title?: string;
+  };
+
+  /** 导出任务 */
+  type ExportTask = {
+    taskId?: number;
+    taskName?: string;
+    taskType?: string;
+    taskTypeName?: string;
+    businessType?: string;
+    businessTypeName?: string;
+    status?: string;
+    statusName?: string;
+    fileId?: number;
+    fileName?: string;
+    fileUrl?: string;
+    fileSize?: number;
+    fileSizeDesc?: string;
+    totalCount?: number;
+    successCount?: number;
+    failCount?: number;
+    errorMsg?: string;
+    queryParams?: string;
+    startTime?: string;
+    endTime?: string;
+    expireTime?: string;
+    duration?: number;
+    createBy?: string;
+    createTime?: string;
+    remark?: string;
+  };
+
+  /** 导出任务查询参数 */
+  type ExportTaskQueryParams = {
+    current?: number;
+    size?: number;
+    taskName?: string;
+    taskType?: string;
+    businessType?: string;
+    status?: string;
+    startTimeBegin?: string;
+    startTimeEnd?: string;
+  };
+
+  /** 导入结果 */
+  type ImportResult = {
+    totalCount?: number;
+    successCount?: number;
+    failCount?: number;
+    errorMessages?: string[];
   };
 }

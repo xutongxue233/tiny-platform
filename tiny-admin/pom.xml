@@ -48,6 +48,12 @@
             <artifactId>tiny-websocket</artifactId>
         </dependency>
 
+        <!-- Export模块 -->
+        <dependency>
+            <groupId>com.tiny</groupId>
+            <artifactId>tiny-export</artifactId>
+        </dependency>
+
         <!-- MySQL -->
         <dependency>
             <groupId>com.mysql</groupId>

@@ -51,6 +51,16 @@ public class UserMessageVO implements Serializable {
     private Integer priority;
 
     /**
+     * 是否置顶(0否 1是)
+     */
+    private String isTop;
+
+    /**
+     * 公告类型(1通知 2公告)
+     */
+    private String noticeType;
+
+    /**
      * 是否已读
      */
     private String isRead;

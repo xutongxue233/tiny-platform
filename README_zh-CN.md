@@ -85,11 +85,6 @@ Tiny Platform 是一个基于 **Spring Boot 3 + MyBatis Plus + Sa-Token + React 
 - 数据字典（字典类型与字典项管理、缓存支持）
 - 系统参数配置（全局参数配置、缓存刷新）
 
-### 信息管理
-- 通知公告（发布、置顶、状态管理）
-- 公告阅读状态（已读/未读、批量标记）
-- 消息通知（未读数量统计、全部已读）
-
 ### 消息中心
 - 站内消息（系统消息、个人消息）
 - WebSocket 实时推送
@@ -118,6 +113,12 @@ Tiny Platform 是一个基于 **Spring Boot 3 + MyBatis Plus + Sa-Token + React 
 - 可自定义代码模板（Entity、Mapper、Service、Controller、DTO、VO）
 - 前端代码生成（React 页面、API 服务）
 - 生成器配置管理
+
+### 数据导出
+- 异步导出任务管理
+- 多种导出格式（Excel、CSV）
+- 导出任务进度追踪
+- 导出历史记录与下载管理
 
 ## 项目结构
 
@@ -160,6 +161,10 @@ tiny-platform/
 │   ├── config/           # WebSocket 配置
 │   ├── handler/          # 消息处理器
 │   └── service/          # WebSocket 服务
+├── tiny-export/          # 导出模块
+│   ├── entity/           # 导出任务实体
+│   ├── service/          # 导出服务
+│   └── controller/       # 导出接口
 ├── tiny-admin/           # 主启动模块
 │   ├── TinyAdminApplication
 │   └── application.yml
@@ -168,10 +173,10 @@ tiny-platform/
 │   ├── config/           # 配置文件
 │   └── mock/             # Mock 数据
 └── docs/                 # 文档
-    └── init.sql          # 数据库初始化脚本
+    └── sql/              # 数据库脚本（模块化）
 ```
 
-**模块依赖关系**: tiny-admin -> tiny-system -> tiny-message -> tiny-websocket -> tiny-generator -> tiny-storage -> tiny-security -> tiny-core -> tiny-common
+**模块依赖关系**: tiny-admin -> tiny-system -> tiny-export -> tiny-message -> tiny-websocket -> tiny-generator -> tiny-storage -> tiny-security -> tiny-core -> tiny-common
 
 ## 快速开始
 
@@ -186,7 +191,7 @@ tiny-platform/
 
 1. 创建数据库并执行初始化脚本
 ```bash
-mysql -u root -p < docs/init.sql
+mysql -u root -p < docs/sql/modules/install-all.sql
 ```
 
 2. 修改配置文件 `tiny-admin/src/main/resources/application.yml`
@@ -258,19 +263,6 @@ npm run dev
 | GET | /sys/menu/tree | 菜单树 |
 | GET | /sys/dept/tree | 部门树 |
 
-### 信息管理
-| 方法 | 接口 | 说明 |
-|-----|------|-----|
-| POST | /info/notice/page | 通知公告分页查询 |
-| GET | /info/notice/{noticeId} | 公告详情 |
-| POST | /info/notice | 新增公告 |
-| PUT | /info/notice | 修改公告 |
-| DELETE | /info/notice/{noticeId} | 删除公告 |
-| PUT | /info/notice/top | 置顶公告 |
-| POST | /info/notice/read/{noticeId} | 标记已读 |
-| GET | /info/notice/unread-count | 未读数量 |
-| POST | /info/notice/read-all | 全部已读 |
-
 ### 日志管理
 | 方法 | 接口 | 说明 |
 |-----|------|-----|
@@ -327,6 +319,14 @@ npm run dev
 | DELETE | /msg/message/batch | 批量删除消息 |
 | GET | /msg/message/unread-count | 获取未读消息数量 |
 
+### 导出任务
+| 方法 | 接口 | 说明 |
+|-----|------|-----|
+| GET | /export/task/page | 导出任务分页查询 |
+| POST | /export/task | 创建导出任务 |
+| GET | /export/task/download/{taskId} | 下载导出文件 |
+| DELETE | /export/task/{taskId} | 删除导出任务 |
+
 ## 模块扩展
 
 系统采用模块化设计，后期可以方便地添加新模块：
@@ -344,11 +344,12 @@ npm run dev
 4. **开发友好** - 完善的 API 文档，丰富的工具库，参数校验
 5. **生产就绪** - 日志系统、监控支持、支持分布式部署
 6. **灵活存储** - 基于工厂模式的可插拔存储后端
+7. **异步导出** - 后台导出任务与进度追踪
 
 ## 后续规划
 
-- [x] 通知公告模块
 - [x] 消息中心模块
+- [x] 导出任务模块
 - [ ] 定时任务模块
 - [ ] 工作流引擎
 

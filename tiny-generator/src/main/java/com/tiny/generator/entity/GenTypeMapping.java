@@ -3,17 +3,19 @@ package com.tiny.generator.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.tiny.common.core.model.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serial;
-import java.io.Serializable;
 
 /**
  * 类型映射配置
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("gen_type_mapping")
-public class GenTypeMapping implements Serializable {
+public class GenTypeMapping extends BaseEntity {
 
     @Serial
     private static final long serialVersionUID = 1L;

@@ -21,9 +21,11 @@ import com.tiny.system.mapper.SysRoleDeptMapper;
 import com.tiny.system.mapper.SysRoleMapper;
 import com.tiny.system.mapper.SysRoleMenuMapper;
 import com.tiny.system.mapper.SysUserRoleMapper;
+import com.tiny.system.service.SysMenuService;
 import com.tiny.system.service.SysRoleService;
 import com.tiny.system.vo.SysRoleVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +44,8 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     private final SysRoleMenuMapper roleMenuMapper;
     private final SysRoleDeptMapper roleDeptMapper;
     private final SysUserRoleMapper userRoleMapper;
+    @Lazy
+    private final SysMenuService menuService;
 
     @Override
     public PageResult<SysRoleVO> page(SysRoleQueryDTO queryDTO) {
@@ -135,6 +139,9 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
         // 差异化更新角色部门关联（优化：只处理变化的数据）
         updateRoleDeptsDiff(dto.getRoleId(), dto.getDeptIds());
+
+        // 清除该角色关联用户的菜单缓存
+        clearRoleRelatedUserMenuCache(dto.getRoleId());
     }
 
     @Override
@@ -153,15 +160,14 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
             throw new BusinessException("该角色已分配给用户，无法删除");
         }
 
-        this.removeById(roleId);
-
-        // 删除角色菜单关联
+        // 先删除关联表，再删除主表（修复删除顺序）
         roleMenuMapper.delete(Wrappers.<SysRoleMenu>lambdaQuery()
                 .eq(SysRoleMenu::getRoleId, roleId));
 
-        // 删除角色部门关联
         roleDeptMapper.delete(Wrappers.<SysRoleDept>lambdaQuery()
                 .eq(SysRoleDept::getRoleId, roleId));
+
+        this.removeById(roleId);
     }
 
     @Override
@@ -179,15 +185,14 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
             throw new BusinessException("选中的角色已分配给用户，无法删除");
         }
 
-        this.removeByIds(roleIds);
-
-        // 删除角色菜单关联
+        // 先删除关联表，再删除主表（修复删除顺序）
         roleMenuMapper.delete(Wrappers.<SysRoleMenu>lambdaQuery()
                 .in(SysRoleMenu::getRoleId, roleIds));
 
-        // 删除角色部门关联
         roleDeptMapper.delete(Wrappers.<SysRoleDept>lambdaQuery()
                 .in(SysRoleDept::getRoleId, roleIds));
+
+        this.removeByIds(roleIds);
     }
 
     @Override
@@ -384,5 +389,20 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         vo.setDeptIds(deptIds);
 
         return vo;
+    }
+
+    /**
+     * 清除该角色关联用户的菜单缓存
+     */
+    private void clearRoleRelatedUserMenuCache(Long roleId) {
+        // 查询该角色的所有用户
+        List<Long> userIds = userRoleMapper.selectList(
+                Wrappers.<SysUserRole>lambdaQuery().eq(SysUserRole::getRoleId, roleId)
+        ).stream().map(SysUserRole::getUserId).collect(Collectors.toList());
+
+        // 清除这些用户的菜单缓存
+        for (Long userId : userIds) {
+            menuService.clearUserMenuCache(userId);
+        }
     }
 }

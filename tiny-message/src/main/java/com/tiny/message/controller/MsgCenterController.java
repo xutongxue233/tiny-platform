@@ -12,7 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import com.tiny.common.annotation.OperationLog;
-import com.tiny.common.enums.OperationType;
+import com.tiny.common.annotation.OperationLog.OperationType;
 
 /**
  * 用户消息中心控制器

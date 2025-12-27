@@ -79,6 +79,16 @@ public class MsgMessage extends BaseEntity {
     private Integer priority;
 
     /**
+     * 是否置顶(0否 1是)
+     */
+    private String isTop;
+
+    /**
+     * 公告类型(1通知 2公告)
+     */
+    private String noticeType;
+
+    /**
      * 状态(0正常 1撤回)
      */
     private String status;

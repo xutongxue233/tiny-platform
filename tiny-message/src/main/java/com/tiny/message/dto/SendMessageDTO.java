@@ -72,4 +72,14 @@ public class SendMessageDTO implements Serializable {
      * 优先级(0普通 1重要 2紧急)
      */
     private Integer priority;
+
+    /**
+     * 是否置顶(0否 1是)
+     */
+    private String isTop;
+
+    /**
+     * 公告类型(1通知 2公告)
+     */
+    private String noticeType;
 }

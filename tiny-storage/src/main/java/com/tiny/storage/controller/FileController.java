@@ -18,7 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.tiny.common.annotation.OperationLog;
-import com.tiny.common.enums.OperationType;
+import com.tiny.common.annotation.OperationLog.OperationType;
 
 import java.io.InputStream;
 import java.net.URLEncoder;

@@ -26,6 +26,7 @@ CREATE TABLE `msg_template` (
   `update_time` datetime DEFAULT NULL COMMENT '更新时间',
   `del_flag` char(1) DEFAULT '0' COMMENT '删除标志(0正常 1删除)',
   `remark` varchar(500) DEFAULT NULL COMMENT '备注',
+  `version` int NULL DEFAULT 0 COMMENT '乐观锁版本号',
   PRIMARY KEY (`template_id`),
   UNIQUE KEY `uk_template_code` (`template_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='消息模板表';
@@ -46,6 +47,8 @@ CREATE TABLE `msg_message` (
   `biz_type` varchar(50) DEFAULT NULL COMMENT '业务类型(用于分类)',
   `biz_id` varchar(100) DEFAULT NULL COMMENT '业务ID(关联业务数据)',
   `priority` int DEFAULT 0 COMMENT '优先级(0普通 1重要 2紧急)',
+  `is_top` char(1) DEFAULT '0' COMMENT '是否置顶(0否 1是)',
+  `notice_type` char(1) DEFAULT NULL COMMENT '公告类型(1通知 2公告)',
   `status` char(1) DEFAULT '0' COMMENT '状态(0正常 1撤回)',
   `create_by` varchar(64) DEFAULT '' COMMENT '创建者',
   `create_time` datetime DEFAULT NULL COMMENT '创建时间',
@@ -53,11 +56,13 @@ CREATE TABLE `msg_message` (
   `update_time` datetime DEFAULT NULL COMMENT '更新时间',
   `del_flag` char(1) DEFAULT '0' COMMENT '删除标志(0正常 1删除)',
   `remark` varchar(500) DEFAULT NULL COMMENT '备注',
+  `version` int NULL DEFAULT 0 COMMENT '乐观锁版本号',
   PRIMARY KEY (`message_id`),
   KEY `idx_template_id` (`template_id`),
   KEY `idx_sender_id` (`sender_id`),
   KEY `idx_biz_type` (`biz_type`),
-  KEY `idx_create_time` (`create_time`)
+  KEY `idx_create_time` (`create_time`),
+  KEY `idx_is_top` (`is_top`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='消息表';
 
 -- ----------------------------
@@ -126,6 +131,7 @@ CREATE TABLE `msg_email_config` (
   `update_time` datetime DEFAULT NULL COMMENT '更新时间',
   `del_flag` char(1) DEFAULT '0' COMMENT '删除标志(0正常 1删除)',
   `remark` varchar(500) DEFAULT NULL COMMENT '备注',
+  `version` int NULL DEFAULT 0 COMMENT '乐观锁版本号',
   PRIMARY KEY (`config_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='邮件配置表';
 

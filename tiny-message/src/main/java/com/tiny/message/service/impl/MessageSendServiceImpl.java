@@ -79,7 +79,7 @@ public class MessageSendServiceImpl implements MessageSendService {
 
         // 创建消息记录
         MsgMessage message = new MsgMessage();
-        message.setMessageType("system");
+        message.setMessageType(StrUtil.isNotBlank(dto.getNoticeType()) ? "notice" : "system");
         message.setChannel(dto.getChannel());
         message.setTitle(title);
         message.setContent(content);
@@ -88,6 +88,8 @@ public class MessageSendServiceImpl implements MessageSendService {
         message.setBizType(dto.getBizType());
         message.setBizId(dto.getBizId());
         message.setPriority(dto.getPriority() != null ? dto.getPriority() : 0);
+        message.setIsTop(StrUtil.isNotBlank(dto.getIsTop()) ? dto.getIsTop() : "0");
+        message.setNoticeType(dto.getNoticeType());
         message.setStatus("0");
         messageMapper.insert(message);
 

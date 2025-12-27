@@ -48,4 +48,14 @@ public interface SysMenuService extends IService<SysMenu> {
      * 获取当前用户的路由菜单树
      */
     List<RouterVO> getUserRouters();
+
+    /**
+     * 清除指定用户的菜单缓存
+     */
+    void clearUserMenuCache(Long userId);
+
+    /**
+     * 清除所有用户的菜单缓存
+     */
+    void clearAllUserMenuCache();
 }
