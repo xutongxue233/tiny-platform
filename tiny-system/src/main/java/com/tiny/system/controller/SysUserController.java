@@ -112,6 +112,13 @@ public class SysUserController {
         return ResponseResult.ok(list);
     }
 
+    @Operation(summary = "获取所有用户简单列表")
+    @GetMapping("/list/simple")
+    public ResponseResult<List<SysUserVO>> listAllSimple() {
+        List<SysUserVO> list = userService.listAllSimple();
+        return ResponseResult.ok(list);
+    }
+
     @Operation(summary = "封禁用户")
     @OperationLog(module = "用户管理", type = OperationType.UPDATE, desc = "封禁用户")
     @SaCheckPermission("system:user:disable")

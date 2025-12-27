@@ -24,6 +24,12 @@
             <artifactId>tiny-security</artifactId>
         </dependency>
 
+        <!-- Message模块（用于实现UserProvider接口） -->
+        <dependency>
+            <groupId>com.tiny</groupId>
+            <artifactId>tiny-message</artifactId>
+        </dependency>
+
         <!-- Knife4j -->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>

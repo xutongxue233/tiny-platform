@@ -26,6 +26,8 @@
         <module>tiny-security</module>
         <module>tiny-storage</module>
         <module>tiny-generator</module>
+        <module>tiny-websocket</module>
+        <module>tiny-message</module>
         <module>tiny-system</module>
         <module>tiny-admin</module>
     </modules>
@@ -83,6 +85,16 @@
             <dependency>
                 <groupId>com.tiny</groupId>
                 <artifactId>tiny-generator</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.tiny</groupId>
+                <artifactId>tiny-message</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.tiny</groupId>
+                <artifactId>tiny-websocket</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

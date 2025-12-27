@@ -166,6 +166,36 @@ export default [
     ],
   },
   {
+    path: '/message',
+    hideInMenu: true,
+    routes: [
+      {
+        path: '/message',
+        redirect: '/message/template',
+      },
+      {
+        path: '/message/template',
+        component: './message/template/index',
+      },
+      {
+        path: '/message/list',
+        component: './message/list/index',
+      },
+      {
+        path: '/message/send-log',
+        component: './message/sendLog/index',
+      },
+      {
+        path: '/message/email-config',
+        component: './message/emailConfig/index',
+      },
+      {
+        path: '/message/center',
+        component: './message/center/index',
+      },
+    ],
+  },
+  {
     path: '/',
     redirect: '/welcome',
   },

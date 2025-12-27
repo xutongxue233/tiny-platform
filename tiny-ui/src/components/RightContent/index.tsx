@@ -11,3 +11,5 @@ export const SelectLang: React.FC = () => {
     />
   );
 };
+
+export { default as NotificationIcon } from './NotificationIcon';

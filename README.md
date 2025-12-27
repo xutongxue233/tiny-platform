@@ -90,6 +90,12 @@ Tiny Platform is a modular backend management system built with **Spring Boot 3 
 - Read Status Tracking (read/unread, batch marking)
 - Message Notifications (unread count, mark all as read)
 
+### Message Center
+- In-app Messages (system messages, personal messages)
+- WebSocket Real-time Push
+- Message List Management (pagination, batch delete)
+- Unread Message Count with Real-time Updates
+
 ### Logging System
 - Operation Logs (auto-record via AOP, annotation-based)
 - Login Logs (login/logout tracking, IP geolocation)
@@ -146,6 +152,14 @@ tiny-platform/
 │   ├── entity/           # Generator entities (GenTable, GenTableColumn)
 │   ├── service/          # Generator services
 │   └── controller/       # Generator APIs
+├── tiny-message/         # Message module
+│   ├── entity/           # Message entities
+│   ├── service/          # Message services
+│   └── controller/       # Message APIs
+├── tiny-websocket/       # WebSocket module
+│   ├── config/           # WebSocket configuration
+│   ├── handler/          # Message handlers
+│   └── service/          # WebSocket services
 ├── tiny-admin/           # Main startup module
 │   ├── TinyAdminApplication
 │   └── application.yml
@@ -157,7 +171,7 @@ tiny-platform/
     └── init.sql          # Database init script
 ```
 
-**Module Dependencies**: tiny-admin -> tiny-system -> tiny-generator -> tiny-storage -> tiny-security -> tiny-core -> tiny-common
+**Module Dependencies**: tiny-admin -> tiny-system -> tiny-message -> tiny-websocket -> tiny-generator -> tiny-storage -> tiny-security -> tiny-core -> tiny-common
 
 ## Quick Start
 
@@ -301,6 +315,18 @@ npm run dev
 | DELETE | /sys/config/{configId} | Delete config |
 | DELETE | /sys/config/refreshCache | Refresh config cache |
 
+### Message Center
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /msg/message/page | Message pagination |
+| GET | /msg/message/{messageId} | Get message detail |
+| POST | /msg/message | Send message |
+| PUT | /msg/message/read/{messageId} | Mark message as read |
+| PUT | /msg/message/read-all | Mark all as read |
+| DELETE | /msg/message/{messageId} | Delete message |
+| DELETE | /msg/message/batch | Batch delete messages |
+| GET | /msg/message/unread-count | Get unread message count |
+
 ## Extension Guide
 
 The system uses modular design for easy extension:
@@ -322,6 +348,7 @@ The system uses modular design for easy extension:
 ## Roadmap
 
 - [x] Notification Module
+- [x] Message Center Module
 - [ ] Scheduled Tasks Module
 - [ ] Workflow Engine
 

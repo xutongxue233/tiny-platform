@@ -40,6 +40,7 @@
     "@bytemd/plugin-gfm": "^1.22.0",
     "@bytemd/plugin-highlight": "^1.22.0",
     "@bytemd/react": "^1.22.0",
+    "@stomp/stompjs": "^7.2.1",
     "antd": "^5.25.4",
     "antd-style": "^3.7.0",
     "bytemd": "^1.22.0",
@@ -47,7 +48,8 @@
     "dayjs": "^1.11.13",
     "highlight.js": "^11.11.1",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "sockjs-client": "^1.6.1"
   },
   "devDependencies": {
     "@ant-design/pro-cli": "^3.3.0",
@@ -63,6 +65,7 @@
     "@types/react": "^19.1.5",
     "@types/react-dom": "^19.1.5",
     "@types/react-helmet": "^6.1.11",
+    "@types/sockjs-client": "^1.5.4",
     "@umijs/max": "^4.3.24",
     "autoprefixer": "^10.4.23",
     "cross-env": "^7.0.3",

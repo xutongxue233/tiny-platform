@@ -5,12 +5,22 @@
  */
 export default {
   dev: {
+    '/api/ws': {
+      target: 'http://localhost:8081',
+      changeOrigin: true,
+      ws: true,
+    },
     '/api/': {
       target: 'http://localhost:8081',
       changeOrigin: true,
     },
   },
   test: {
+    '/api/ws': {
+      target: 'http://localhost:8081',
+      changeOrigin: true,
+      ws: true,
+    },
     '/api/': {
       target: 'http://localhost:8081',
       changeOrigin: true,

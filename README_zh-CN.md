@@ -90,6 +90,12 @@ Tiny Platform 是一个基于 **Spring Boot 3 + MyBatis Plus + Sa-Token + React 
 - 公告阅读状态（已读/未读、批量标记）
 - 消息通知（未读数量统计、全部已读）
 
+### 消息中心
+- 站内消息（系统消息、个人消息）
+- WebSocket 实时推送
+- 消息列表管理（分页查询、批量删除）
+- 未读消息统计与实时更新
+
 ### 日志系统
 - 操作日志（基于 AOP 切面自动记录，支持注解配置）
 - 登录日志（记录登录/登出，IP 归属地解析）
@@ -146,6 +152,14 @@ tiny-platform/
 │   ├── entity/           # 生成器实体（GenTable、GenTableColumn）
 │   ├── service/          # 生成器服务
 │   └── controller/       # 生成器接口
+├── tiny-message/         # 消息模块
+│   ├── entity/           # 消息实体
+│   ├── service/          # 消息服务
+│   └── controller/       # 消息接口
+├── tiny-websocket/       # WebSocket 模块
+│   ├── config/           # WebSocket 配置
+│   ├── handler/          # 消息处理器
+│   └── service/          # WebSocket 服务
 ├── tiny-admin/           # 主启动模块
 │   ├── TinyAdminApplication
 │   └── application.yml
@@ -157,7 +171,7 @@ tiny-platform/
     └── init.sql          # 数据库初始化脚本
 ```
 
-**模块依赖关系**: tiny-admin -> tiny-system -> tiny-generator -> tiny-storage -> tiny-security -> tiny-core -> tiny-common
+**模块依赖关系**: tiny-admin -> tiny-system -> tiny-message -> tiny-websocket -> tiny-generator -> tiny-storage -> tiny-security -> tiny-core -> tiny-common
 
 ## 快速开始
 
@@ -301,6 +315,18 @@ npm run dev
 | DELETE | /sys/config/{configId} | 删除参数配置 |
 | DELETE | /sys/config/refreshCache | 刷新参数缓存 |
 
+### 消息中心
+| 方法 | 接口 | 说明 |
+|-----|------|-----|
+| GET | /msg/message/page | 消息分页查询 |
+| GET | /msg/message/{messageId} | 获取消息详情 |
+| POST | /msg/message | 发送消息 |
+| PUT | /msg/message/read/{messageId} | 标记消息已读 |
+| PUT | /msg/message/read-all | 全部标记已读 |
+| DELETE | /msg/message/{messageId} | 删除消息 |
+| DELETE | /msg/message/batch | 批量删除消息 |
+| GET | /msg/message/unread-count | 获取未读消息数量 |
+
 ## 模块扩展
 
 系统采用模块化设计，后期可以方便地添加新模块：
@@ -322,6 +348,7 @@ npm run dev
 ## 后续规划
 
 - [x] 通知公告模块
+- [x] 消息中心模块
 - [ ] 定时任务模块
 - [ ] 工作流引擎
 

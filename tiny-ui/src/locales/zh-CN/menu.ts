@@ -68,4 +68,10 @@ export default {
   'menu.tool.genConfig': '生成配置',
   'menu.info': '信息管理',
   'menu.info.notice': '通知公告',
+  'menu.message': '消息管理',
+  'menu.message.template': '消息模板',
+  'menu.message.list': '消息列表',
+  'menu.message.sendLog': '发送记录',
+  'menu.message.emailConfig': '邮件配置',
+  'menu.message.center': '消息中心',
 };

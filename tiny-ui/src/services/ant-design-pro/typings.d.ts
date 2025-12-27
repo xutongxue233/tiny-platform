@@ -656,4 +656,183 @@ declare namespace API {
     status?: string;
     createBy?: string;
   };
+
+  /** 消息模板 */
+  type MsgTemplate = {
+    templateId?: number;
+    templateCode?: string;
+    templateName?: string;
+    templateType?: string;
+    templateContent?: string;
+    templateSubject?: string;
+    variables?: string;
+    status?: string;
+    createBy?: string;
+    createTime?: string;
+    updateBy?: string;
+    updateTime?: string;
+    remark?: string;
+  };
+
+  /** 消息模板DTO */
+  type MsgTemplateDTO = {
+    templateId?: number;
+    templateCode: string;
+    templateName: string;
+    templateType: string;
+    templateContent: string;
+    templateSubject?: string;
+    variables?: string;
+    status?: string;
+    remark?: string;
+  };
+
+  /** 消息模板查询参数 */
+  type MsgTemplateQueryParams = {
+    current?: number;
+    size?: number;
+    templateCode?: string;
+    templateName?: string;
+    templateType?: string;
+    status?: string;
+  };
+
+  /** 消息 */
+  type MsgMessage = {
+    messageId?: number;
+    messageType?: string;
+    channel?: string;
+    templateId?: number;
+    title?: string;
+    content?: string;
+    senderId?: number;
+    senderType?: string;
+    bizType?: string;
+    bizId?: string;
+    priority?: number;
+    status?: string;
+    createBy?: string;
+    createTime?: string;
+    updateBy?: string;
+    updateTime?: string;
+    remark?: string;
+    recipientCount?: number;
+    readCount?: number;
+    sendCount?: number;
+    successCount?: number;
+    failCount?: number;
+  };
+
+  /** 消息查询参数 */
+  type MsgMessageQueryParams = {
+    current?: number;
+    size?: number;
+    messageType?: string;
+    channel?: string;
+    title?: string;
+    createBy?: string;
+    priority?: number;
+    status?: string;
+  };
+
+  /** 发送消息DTO */
+  type SendMessageDTO = {
+    templateCode?: string;
+    channel: string;
+    title: string;
+    content: string;
+    userIds?: number[];
+    emails?: string[];
+    priority?: number;
+    variables?: Record<string, any>;
+    broadcast?: boolean;
+  };
+
+  /** 发送记录 */
+  type MsgSendLog = {
+    logId?: number;
+    messageId?: number;
+    recipientId?: number;
+    channel?: string;
+    recipientAddress?: string;
+    sendStatus?: string;
+    sendTime?: string;
+    successTime?: string;
+    retryCount?: number;
+    errorCode?: string;
+    errorMsg?: string;
+    requestData?: string;
+    responseData?: string;
+    messageTitle?: string;
+  };
+
+  /** 发送记录查询参数 */
+  type MsgSendLogQueryParams = {
+    current?: number;
+    size?: number;
+    messageId?: number;
+    channel?: string;
+    recipientAddress?: string;
+    sendStatus?: string;
+  };
+
+  /** 邮件配置 */
+  type MsgEmailConfig = {
+    configId?: number;
+    configName?: string;
+    host?: string;
+    port?: number;
+    username?: string;
+    password?: string;
+    fromAddress?: string;
+    fromName?: string;
+    sslEnable?: string;
+    isDefault?: string;
+    status?: string;
+    createBy?: string;
+    createTime?: string;
+    updateBy?: string;
+    updateTime?: string;
+    remark?: string;
+  };
+
+  /** 邮件配置DTO */
+  type MsgEmailConfigDTO = {
+    configId?: number;
+    configName: string;
+    host: string;
+    port: number;
+    username: string;
+    password?: string;
+    fromAddress: string;
+    fromName?: string;
+    sslEnable?: string;
+    isDefault?: string;
+    status?: string;
+    remark?: string;
+  };
+
+  /** 用户消息 */
+  type UserMessage = {
+    recipientId?: number;
+    messageId?: number;
+    messageType?: string;
+    channel?: string;
+    title?: string;
+    content?: string;
+    priority?: number;
+    isRead?: string;
+    readTime?: string;
+    createTime?: string;
+    senderName?: string;
+  };
+
+  /** 用户消息查询参数 */
+  type UserMessageQueryParams = {
+    current?: number;
+    size?: number;
+    messageType?: string;
+    isRead?: string;
+    title?: string;
+  };
 }

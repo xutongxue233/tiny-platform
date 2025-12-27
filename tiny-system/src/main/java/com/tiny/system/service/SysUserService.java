@@ -67,4 +67,9 @@ public interface SysUserService extends IService<SysUser> {
      */
     void untieDisable(Long userId);
 
+    /**
+     * 获取所有正常状态的用户简单列表
+     */
+    List<SysUserVO> listAllSimple();
+
 }

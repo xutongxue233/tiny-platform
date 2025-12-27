@@ -69,4 +69,10 @@ export default {
   'menu.tool.genConfig': 'Generator Config',
   'menu.info': 'Information',
   'menu.info.notice': 'Notice',
+  'menu.message': 'Message',
+  'menu.message.template': 'Message Template',
+  'menu.message.list': 'Message List',
+  'menu.message.sendLog': 'Send Log',
+  'menu.message.emailConfig': 'Email Config',
+  'menu.message.center': 'Message Center',
 };

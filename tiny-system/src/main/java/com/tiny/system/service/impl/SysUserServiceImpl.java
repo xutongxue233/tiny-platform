@@ -248,6 +248,25 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         StpUtil.untieDisable(userId);
     }
 
+    @Override
+    public List<SysUserVO> listAllSimple() {
+        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(SysUser::getStatus, StatusEnum.NORMAL.getCode())
+                .and(w -> w.isNull(SysUser::getSuperAdmin).or().ne(SysUser::getSuperAdmin, CommonConstants.SUPER_ADMIN))
+                .select(SysUser::getUserId, SysUser::getUsername, SysUser::getRealName, SysUser::getEmail)
+                .orderByAsc(SysUser::getUsername);
+
+        List<SysUser> users = this.list(wrapper);
+        return users.stream().map(user -> {
+            SysUserVO vo = new SysUserVO();
+            vo.setUserId(user.getUserId());
+            vo.setUsername(user.getUsername());
+            vo.setRealName(user.getRealName());
+            vo.setEmail(user.getEmail());
+            return vo;
+        }).collect(Collectors.toList());
+    }
+
     private boolean checkUsernameExists(String username, Long excludeUserId) {
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysUser::getUsername, username);

@@ -9,6 +9,7 @@ export default {
     'You have viewed all notifications.',
   'component.globalHeader.message': 'Message',
   'component.globalHeader.message.empty': 'You have viewed all messsages.',
+  'component.globalHeader.message.markAllRead': 'Mark all read',
   'component.globalHeader.event': 'Event',
   'component.globalHeader.event.empty': 'You have viewed all events.',
   'component.noticeIcon.clear': 'Clear',

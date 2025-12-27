@@ -7,6 +7,7 @@ import {
   AvatarDropdown,
   AvatarName,
   Footer,
+  NotificationIcon,
   SelectLang,
 } from '@/components';
 import { getCurrentUser, getRouters, TokenUtil } from '@/services/ant-design-pro/api';
@@ -123,6 +124,7 @@ export const layout: RunTimeLayoutConfig = ({
 }) => {
   return {
     actionsRender: () => [
+      <NotificationIcon key="notification" />,
       <SelectLang key="SelectLang" />,
     ],
     avatarProps: {

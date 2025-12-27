@@ -876,3 +876,11 @@ export async function getFileTempUrl(
   });
 }
 
+/** 获取所有用户简单列表 GET /api/system/user/list/simple */
+export async function getUserListAll(options?: { [key: string]: any }) {
+  return request<API.ResponseResult<API.SysUser[]>>('/api/system/user/list/simple', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+

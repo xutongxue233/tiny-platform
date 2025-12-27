@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.tiny</groupId>
+        <artifactId>tiny-platform</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>tiny-websocket</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Tiny WebSocket</name>
+    <description>WebSocket通信模块：实时消息推送、在线用户管理</description>
+
+    <dependencies>
+        <!-- Core模块 -->
+        <dependency>
+            <groupId>com.tiny</groupId>
+            <artifactId>tiny-core</artifactId>
+        </dependency>
+
+        <!-- Security模块（Sa-Token） -->
+        <dependency>
+            <groupId>com.tiny</groupId>
+            <artifactId>tiny-security</artifactId>
+        </dependency>
+
+        <!-- Spring WebSocket -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+    </dependencies>
+</project>

@@ -36,6 +36,18 @@
             <artifactId>tiny-generator</artifactId>
         </dependency>
 
+        <!-- Message模块 -->
+        <dependency>
+            <groupId>com.tiny</groupId>
+            <artifactId>tiny-message</artifactId>
+        </dependency>
+
+        <!-- WebSocket模块 -->
+        <dependency>
+            <groupId>com.tiny</groupId>
+            <artifactId>tiny-websocket</artifactId>
+        </dependency>
+
         <!-- MySQL -->
         <dependency>
             <groupId>com.mysql</groupId>
