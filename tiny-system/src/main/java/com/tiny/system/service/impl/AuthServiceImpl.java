@@ -11,6 +11,7 @@ import com.tiny.common.enums.DataScopeEnum;
 import com.tiny.common.enums.LoginTypeEnum;
 import com.tiny.common.enums.StatusEnum;
 import com.tiny.common.exception.BusinessException;
+import com.tiny.core.lock.DistributedLockUtil;
 import com.tiny.core.web.WebUtil;
 import com.tiny.security.context.LoginUser;
 import com.tiny.security.utils.LoginUserUtil;
@@ -54,6 +55,7 @@ public class AuthServiceImpl implements AuthService {
     private final LoginProtectionService loginProtectionService;
     private final SysConfigService configService;
     private final CaptchaService captchaService;
+    private final DistributedLockUtil distributedLockUtil;
 
     @Override
     public LoginVO login(LoginDTO loginDTO) {
@@ -268,6 +270,7 @@ public class AuthServiceImpl implements AuthService {
         return sb.toString();
     }
 
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void register(RegisterDTO registerDTO) {
@@ -292,27 +295,32 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException("密码长度必须在" + minLength + "-" + maxLength + "位之间");
         }
 
-        // 校验用户名是否存在
         String username = registerDTO.getUsername();
-        long count = userMapper.selectCount(
-                Wrappers.<SysUser>lambdaQuery().eq(SysUser::getUsername, username)
-        );
-        if (count > 0) {
-            throw new BusinessException("用户名已存在");
-        }
+        String lockKey = "register:username:" + username;
 
-        // 创建用户
-        SysUser user = new SysUser();
-        user.setUsername(username);
-        user.setPassword(BCrypt.hashpw(password));
-        user.setStatus(StatusEnum.NORMAL.getCode());
-        userMapper.insert(user);
+        // 使用分布式锁防止并发注册相同用户名
+        distributedLockUtil.executeWithLock(lockKey, 3L, 10L, () -> {
+            // 校验用户名是否存在
+            long count = userMapper.selectCount(
+                    Wrappers.<SysUser>lambdaQuery().eq(SysUser::getUsername, username)
+            );
+            if (count > 0) {
+                throw new BusinessException("用户名已存在");
+            }
 
-        // 分配默认角色（普通用户，roleId=2）
-        SysUserRole userRole = new SysUserRole();
-        userRole.setUserId(user.getUserId());
-        userRole.setRoleId(2L);
-        userRoleMapper.insert(userRole);
+            // 创建用户
+            SysUser user = new SysUser();
+            user.setUsername(username);
+            user.setPassword(BCrypt.hashpw(password));
+            user.setStatus(StatusEnum.NORMAL.getCode());
+            userMapper.insert(user);
+
+            // 分配默认角色（普通用户，roleId=2）
+            SysUserRole userRole = new SysUserRole();
+            userRole.setUserId(user.getUserId());
+            userRole.setRoleId(2L);
+            userRoleMapper.insert(userRole);
+        });
     }
 
     /**

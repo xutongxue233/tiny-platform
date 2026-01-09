@@ -24,6 +24,7 @@
         <module>tiny-common</module>
         <module>tiny-core</module>
         <module>tiny-security</module>
+        <module>tiny-ratelimit</module>
         <module>tiny-storage</module>
         <module>tiny-generator</module>
         <module>tiny-websocket</module>
@@ -54,6 +55,7 @@
         <aws-s3.version>2.25.0</aws-s3.version>
         <tencent-cos.version>5.6.227</tencent-cos.version>
         <easyexcel.version>4.0.3</easyexcel.version>
+        <redisson.version>3.25.0</redisson.version>
         <commons-compress.version>1.25.0</commons-compress.version>
     </properties>
 

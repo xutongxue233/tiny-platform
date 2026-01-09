@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 菜单Mapper
@@ -22,4 +23,9 @@ public interface SysMenuMapper extends BaseMapper<SysMenu> {
      * 根据角色ID列表查询菜单列表
      */
     List<SysMenu> selectMenusByRoleIds(@Param("roleIds") List<Long> roleIds);
+
+    /**
+     * 根据用户ID查询权限标识列表
+     */
+    Set<String> selectPermsByUserId(@Param("userId") Long userId);
 }

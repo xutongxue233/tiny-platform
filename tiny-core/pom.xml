@@ -15,7 +15,7 @@
     <packaging>jar</packaging>
 
     <name>Tiny Core</name>
-    <description>核心框架模块：MyBatis Plus配置、全局异常处理、Web工具等</description>
+    <description>核心框架模块：MyBatis Plus配置、全局异常处理、Web工具、分布式锁等</description>
 
     <dependencies>
         <!-- Common模块 -->
@@ -52,6 +52,19 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid-spring-boot-3-starter</artifactId>
+        </dependency>
+
+        <!-- Redisson分布式锁 -->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-boot-starter</artifactId>
+            <version>3.25.0</version>
+        </dependency>
+            <!-- Test Dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

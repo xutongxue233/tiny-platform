@@ -24,6 +24,13 @@
             <artifactId>tiny-security</artifactId>
         </dependency>
 
+        <!-- 限流模块 -->
+        <dependency>
+            <groupId>com.tiny</groupId>
+            <artifactId>tiny-ratelimit</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Message模块（用于实现UserProvider接口） -->
         <dependency>
             <groupId>com.tiny</groupId>
@@ -36,5 +43,11 @@
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
         </dependency>
 
+            <!-- Test Dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

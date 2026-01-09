@@ -18,12 +18,15 @@ import com.tiny.system.vo.SysConfigVO;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +43,21 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
      * 参数配置缓存Key前缀
      */
     private static final String CONFIG_CACHE_KEY = "sys:config:";
+
+    /**
+     * 配置键名集合Key，用于记录所有已缓存的配置键
+     */
+    private static final String CONFIG_KEYS_SET = "sys:config:keys";
+
+    /**
+     * 空值缓存标记，用于防止缓存穿透
+     */
+    private static final String NULL_VALUE = "__NULL__";
+
+    /**
+     * 空值缓存过期时间（秒）
+     */
+    private static final int NULL_EXPIRE_SECONDS = 60;
 
     /**
      * 启动时加载配置到缓存
@@ -215,7 +233,13 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
         // 先从缓存获取
         String cacheKey = CONFIG_CACHE_KEY + configKey;
         String value = stringRedisTemplate.opsForValue().get(cacheKey);
+
+        // 命中缓存
         if (value != null) {
+            // 空值标记，直接返回默认值（防止缓存穿透）
+            if (NULL_VALUE.equals(value)) {
+                return defaultValue;
+            }
             return value;
         }
 
@@ -230,6 +254,8 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
             return config.getConfigValue();
         }
 
+        // 缓存空值，防止缓存穿透
+        stringRedisTemplate.opsForValue().set(cacheKey, NULL_VALUE, NULL_EXPIRE_SECONDS, TimeUnit.SECONDS);
         return defaultValue;
     }
 
@@ -255,11 +281,12 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
     @Override
     public void refreshCache() {
         log.info("开始刷新系统参数配置缓存...");
-        // 清除所有配置缓存
-        Set<String> keys = stringRedisTemplate.keys(CONFIG_CACHE_KEY + "*");
-        if (CollUtil.isNotEmpty(keys)) {
-            stringRedisTemplate.delete(keys);
-        }
+
+        // 使用SCAN命令替代KEYS命令，避免阻塞Redis
+        int deletedCount = clearAllConfigCacheUsingScan();
+
+        // 清除键名集合
+        stringRedisTemplate.delete(CONFIG_KEYS_SET);
 
         // 重新加载启用状态的配置
         List<SysConfig> configs = this.list(Wrappers.<SysConfig>lambdaQuery()
@@ -270,13 +297,48 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
                 setConfigCache(config.getConfigKey(), config.getConfigValue());
             }
         }
-        log.info("系统参数配置缓存刷新完成，共加载{}条配置", configs.size());
+        log.info("系统参数配置缓存刷新完成，删除{}个旧缓存，加载{}条配置", deletedCount, configs.size());
+    }
+
+    /**
+     * 使用SCAN命令清除所有配置缓存（替代KEYS命令，避免阻塞Redis）
+     *
+     * @return 删除的缓存数量
+     */
+    private int clearAllConfigCacheUsingScan() {
+        int deletedCount = 0;
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(CONFIG_CACHE_KEY + "*")
+                .count(100)
+                .build();
+
+        try (Cursor<String> cursor = stringRedisTemplate.scan(options)) {
+            List<String> batch = new ArrayList<>();
+            while (cursor.hasNext()) {
+                batch.add(cursor.next());
+                if (batch.size() >= 100) {
+                    stringRedisTemplate.delete(batch);
+                    deletedCount += batch.size();
+                    batch.clear();
+                }
+            }
+            if (!batch.isEmpty()) {
+                stringRedisTemplate.delete(batch);
+                deletedCount += batch.size();
+            }
+        } catch (Exception e) {
+            log.error("使用SCAN清除配置缓存失败", e);
+        }
+
+        return deletedCount;
     }
 
     @Override
     public void clearCache(String configKey) {
         String cacheKey = CONFIG_CACHE_KEY + configKey;
         stringRedisTemplate.delete(cacheKey);
+        // 从键名集合中移除
+        stringRedisTemplate.opsForSet().remove(CONFIG_KEYS_SET, configKey);
     }
 
     /**
@@ -285,6 +347,8 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
     private void setConfigCache(String configKey, String configValue) {
         String cacheKey = CONFIG_CACHE_KEY + configKey;
         stringRedisTemplate.opsForValue().set(cacheKey, configValue != null ? configValue : "");
+        // 记录键名到集合中，便于后续维护
+        stringRedisTemplate.opsForSet().add(CONFIG_KEYS_SET, configKey);
     }
 
     /**

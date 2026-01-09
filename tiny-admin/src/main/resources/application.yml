@@ -1,5 +1,13 @@
 server:
   port: 8081
+  # Tomcat线程池配置（高并发优化）
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 20
+    accept-count: 100
+    max-connections: 10000
+    connection-timeout: 20000
   servlet:
     context-path: /api
 
@@ -15,10 +23,10 @@ spring:
     username: root
     password: root
     druid:
-      initial-size: 5
-      min-idle: 5
-      max-active: 20
-      max-wait: 60000
+      initial-size: 10
+      min-idle: 10
+      max-active: 100
+      max-wait: 30000
       time-between-eviction-runs-millis: 60000
       min-evictable-idle-time-millis: 300000
       validation-query: SELECT 1
@@ -63,10 +71,10 @@ spring:
       password:
       lettuce:
         pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
-          max-wait: 1000ms
+          max-active: 50
+          max-idle: 20
+          min-idle: 5
+          max-wait: 2000ms
 
 # MyBatis Plus配置
 mybatis-plus:
