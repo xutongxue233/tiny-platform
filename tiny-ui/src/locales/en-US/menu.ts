@@ -57,6 +57,8 @@ export default {
   'menu.system.storage': 'Storage Config',
   'menu.system.dict': 'Dictionary',
   'menu.system.config': 'System Config',
+  'menu.system.exportTask': 'Export Task',
+  'menu.system.导出任务': 'Export Task',
   'menu.storage': 'Storage',
   'menu.storage.config': 'Storage Config',
   'menu.storage.file': 'File Management',

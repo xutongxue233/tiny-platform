@@ -6,6 +6,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { deleteMenu, getMenuTree } from '@/services/ant-design-pro/api';
 import MenuForm from './components/MenuForm';
 import * as icons from '@ant-design/icons';
+import { Icon } from '@iconify/react';
 
 const MenuManagement: React.FC = () => {
   const actionRef = useRef<ActionType | null>(null);
@@ -53,6 +54,11 @@ const MenuManagement: React.FC = () => {
 
   const renderIcon = (iconName?: string) => {
     if (!iconName) return null;
+    // 支持 Iconify 格式 (prefix:icon-name)
+    if (iconName.includes(':')) {
+      return <Icon icon={iconName} style={{ marginRight: 4, fontSize: 16 }} />;
+    }
+    // 兼容旧的 Ant Design 图标格式
     const IconComponent = (icons as any)[iconName];
     if (IconComponent) {
       return <IconComponent style={{ marginRight: 4 }} />;

@@ -56,6 +56,8 @@ export default {
   'menu.system.dept': '部门管理',
   'menu.system.dict': '字典管理',
   'menu.system.config': '参数配置',
+  'menu.system.exportTask': '导出任务',
+  'menu.system.导出任务': '导出任务',
   'menu.monitor': '系统监控',
   'menu.monitor.loginLog': '登录日志',
   'menu.monitor.operationLog': '操作日志',

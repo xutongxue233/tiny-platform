@@ -15,6 +15,7 @@ import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 import '@ant-design/v5-patch-for-react-19';
 import * as allIcons from '@ant-design/icons';
+import { Icon } from '@iconify/react';
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
@@ -24,10 +25,16 @@ const fixMenuItemIcon = (menus: MenuDataItem[]): MenuDataItem[] => {
     const { icon, children, ...rest } = item;
     let iconElement = icon;
     if (typeof icon === 'string' && icon) {
-      const iconName = icon.replace(/(Outlined|Filled|TwoTone)$/, '') + 'Outlined';
-      const IconComponent = (allIcons as Record<string, any>)[iconName] || (allIcons as Record<string, any>)[icon];
-      if (IconComponent) {
-        iconElement = React.createElement(IconComponent);
+      // 支持 Iconify 格式 (prefix:icon-name)
+      if (icon.includes(':')) {
+        iconElement = React.createElement(Icon, { icon, style: { fontSize: 16 } });
+      } else {
+        // 兼容旧的 Ant Design 图标格式
+        const iconName = icon.replace(/(Outlined|Filled|TwoTone)$/, '') + 'Outlined';
+        const IconComponent = (allIcons as Record<string, any>)[iconName] || (allIcons as Record<string, any>)[icon];
+        if (IconComponent) {
+          iconElement = React.createElement(IconComponent);
+        }
       }
     }
     return {

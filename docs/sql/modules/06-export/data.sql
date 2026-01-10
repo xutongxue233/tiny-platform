@@ -9,7 +9,7 @@ SET NAMES utf8mb4;
 -- ----------------------------
 -- Menus (export)
 -- ----------------------------
-INSERT INTO `sys_menu` VALUES (120, '导出任务', NULL, 1, 8, '/system/exportTask', 'system/exportTask/index', 'C', '0', '0', 'system:export:list', 'ExportOutlined', '0', '0', NULL, '_blank', NULL, NULL, NULL, NOW(), NULL, NOW(), '0', '导出任务管理');
+INSERT INTO `sys_menu` VALUES (120, '导出任务', 'system.exportTask', 1, 8, '/system/exportTask', 'system/exportTask/index', 'C', '0', '0', 'system:export:list', 'ExportOutlined', '0', '0', NULL, '_blank', NULL, NULL, NULL, NOW(), NULL, NOW(), '0', '导出任务管理');
 INSERT INTO `sys_menu` VALUES (121, '任务查询', NULL, 120, 1, NULL, NULL, 'F', '0', '0', 'system:export:query', NULL, '0', '0', NULL, '_blank', NULL, NULL, NULL, NOW(), NULL, NOW(), '0', NULL);
 INSERT INTO `sys_menu` VALUES (122, '任务删除', NULL, 120, 2, NULL, NULL, 'F', '0', '0', 'system:export:remove', NULL, '0', '0', NULL, '_blank', NULL, NULL, NULL, NOW(), NULL, NOW(), '0', NULL);
 INSERT INTO `sys_menu` VALUES (123, '文件下载', NULL, 120, 3, NULL, NULL, 'F', '0', '0', 'system:export:download', NULL, '0', '0', NULL, '_blank', NULL, NULL, NULL, NOW(), NULL, NOW(), '0', NULL);
