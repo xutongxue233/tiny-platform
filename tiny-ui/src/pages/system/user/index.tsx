@@ -4,9 +4,9 @@ import {
   PageContainer,
   ProTable,
 } from '@ant-design/pro-components';
-import { useAccess, useIntl, useRequest } from '@umijs/max';
-import { Button, Col, message, Modal, Popconfirm, Row, Switch, Tag } from 'antd';
-import React, { useCallback, useRef, useState } from 'react';
+import { useAccess, useIntl } from '@umijs/max';
+import { Button, Col, Popconfirm, Row, Switch, Tag } from 'antd';
+import React, { useCallback, useState } from 'react';
 import {
   changeUserStatus,
   deleteUser,
@@ -20,99 +20,47 @@ import {
   importUserData,
 } from '@/services/ant-design-pro/export';
 import { ExportButton, ImportButton } from '@/components/ExportImport';
+import { useCrudTable } from '@/hooks/useCrudTable';
+import { SYSTEM } from '@/constants/permissions';
 import UserForm from './components/UserForm';
 import ResetPasswordForm from './components/ResetPasswordForm';
 import DeptTree from './components/DeptTree';
 
 const UserList: React.FC = () => {
-  const actionRef = useRef<ActionType | null>(null);
-  const [selectedRowsState, setSelectedRows] = useState<API.SysUser[]>([]);
   const [selectedDeptId, setSelectedDeptId] = useState<number | undefined>();
-
   const intl = useIntl();
+  const access = useAccess();
+
+  const {
+    actionRef,
+    selectedRows,
+    contextHolder,
+    deleteLoading,
+    deleteBatchLoading,
+    handleDelete,
+    handleBatchDelete,
+    handleStatusChange,
+    rowSelection,
+  } = useCrudTable<API.SysUser, number>({
+    deleteApi: deleteUser,
+    deleteBatchApi: deleteUserBatch,
+    changeStatusApi: changeUserStatus,
+    rowKey: 'userId',
+    nameKey: 'username',
+    messages: {
+      deleteSuccess: intl.formatMessage({ id: 'pages.user.deleteSuccess', defaultMessage: '删除成功' }),
+      deleteFailed: intl.formatMessage({ id: 'pages.user.deleteFailed', defaultMessage: '删除失败' }),
+      selectRequired: intl.formatMessage({ id: 'pages.user.selectRequired', defaultMessage: '请选择要删除的用户' }),
+      statusChangeSuccess: intl.formatMessage({ id: 'pages.user.statusChangeSuccess', defaultMessage: '状态修改成功' }),
+      statusChangeFailed: intl.formatMessage({ id: 'pages.user.statusChangeFailed', defaultMessage: '状态修改失败' }),
+      statusChangeConfirm: intl.formatMessage({ id: 'pages.user.confirmStatusChange', defaultMessage: '确认修改状态' }),
+    },
+  });
 
   const handleDeptSelect = useCallback((deptId?: number) => {
     setSelectedDeptId(deptId);
     actionRef.current?.reloadAndRest?.();
-  }, []);
-  const access = useAccess();
-  const [messageApi, contextHolder] = message.useMessage();
-
-  const { run: delRun, loading: delLoading } = useRequest(deleteUser, {
-    manual: true,
-    onSuccess: () => {
-      actionRef.current?.reloadAndRest?.();
-      messageApi.success(
-        intl.formatMessage({ id: 'pages.user.deleteSuccess', defaultMessage: '删除成功' }),
-      );
-    },
-    onError: () => {
-      messageApi.error(
-        intl.formatMessage({ id: 'pages.user.deleteFailed', defaultMessage: '删除失败' }),
-      );
-    },
-  });
-
-  const { run: delBatchRun, loading: delBatchLoading } = useRequest(deleteUserBatch, {
-    manual: true,
-    onSuccess: () => {
-      setSelectedRows([]);
-      actionRef.current?.reloadAndRest?.();
-      messageApi.success(
-        intl.formatMessage({ id: 'pages.user.deleteSuccess', defaultMessage: '删除成功' }),
-      );
-    },
-    onError: () => {
-      messageApi.error(
-        intl.formatMessage({ id: 'pages.user.deleteFailed', defaultMessage: '删除失败' }),
-      );
-    },
-  });
-
-  const { run: changeStatusRun } = useRequest(changeUserStatus, {
-    manual: true,
-    onSuccess: () => {
-      actionRef.current?.reload?.();
-      messageApi.success(
-        intl.formatMessage({ id: 'pages.user.statusChangeSuccess', defaultMessage: '状态修改成功' }),
-      );
-    },
-    onError: () => {
-      messageApi.error(
-        intl.formatMessage({ id: 'pages.user.statusChangeFailed', defaultMessage: '状态修改失败' }),
-      );
-    },
-  });
-
-  const handleStatusChange = useCallback(
-    (checked: boolean, record: API.SysUser) => {
-      Modal.confirm({
-        title: intl.formatMessage({ id: 'pages.user.confirmStatusChange', defaultMessage: '确认修改状态' }),
-        content: intl.formatMessage(
-          { id: 'pages.user.statusChangeContent', defaultMessage: '确定要{action}用户"{name}"吗？' },
-          { action: checked ? '启用' : '禁用', name: record.username },
-        ),
-        onOk: () => {
-          changeStatusRun({ id: record.userId!, status: checked ? '0' : '1' });
-        },
-      });
-    },
-    [changeStatusRun, intl],
-  );
-
-  const handleBatchRemove = useCallback(
-    async (selectedRows: API.SysUser[]) => {
-      if (!selectedRows?.length) {
-        messageApi.warning(
-          intl.formatMessage({ id: 'pages.user.selectRequired', defaultMessage: '请选择要删除的用户' }),
-        );
-        return;
-      }
-      const ids = selectedRows.map((row) => row.userId!);
-      await delBatchRun({ ids });
-    },
-    [delBatchRun, intl, messageApi],
-  );
+  }, [actionRef]);
 
   const columns: ProColumns<API.SysUser>[] = [
     {
@@ -178,7 +126,10 @@ const UserList: React.FC = () => {
       render: (_, record) => (
         <Switch
           checked={record.status === '0'}
-          onChange={(checked) => handleStatusChange(checked, record)}
+          onChange={(checked) => handleStatusChange(checked, record, {
+            enableText: intl.formatMessage({ id: 'pages.user.status.enable', defaultMessage: '启用' }),
+            disableText: intl.formatMessage({ id: 'pages.user.status.disable', defaultMessage: '禁用' }),
+          })}
           checkedChildren={intl.formatMessage({ id: 'pages.user.status.normal', defaultMessage: '正常' })}
           unCheckedChildren={intl.formatMessage({ id: 'pages.user.status.disabled', defaultMessage: '停用' })}
         />
@@ -197,7 +148,7 @@ const UserList: React.FC = () => {
       valueType: 'option',
       width: 180,
       render: (_, record) => [
-        access.hasPermission('system:user:edit') && (
+        access.hasPermission(SYSTEM.USER.EDIT) && (
           <UserForm
             key="edit"
             trigger={<a>{intl.formatMessage({ id: 'pages.user.edit', defaultMessage: '编辑' })}</a>}
@@ -205,18 +156,18 @@ const UserList: React.FC = () => {
             onOk={() => actionRef.current?.reload?.()}
           />
         ),
-        access.hasPermission('system:user:edit') && (
+        access.hasPermission(SYSTEM.USER.EDIT) && (
           <ResetPasswordForm
             key="resetPwd"
             trigger={<a>{intl.formatMessage({ id: 'pages.user.resetPassword', defaultMessage: '重置密码' })}</a>}
             userId={record.userId!}
           />
         ),
-        access.hasPermission('system:user:remove') && (
+        access.hasPermission(SYSTEM.USER.REMOVE) && (
           <Popconfirm
             key="delete"
             title={intl.formatMessage({ id: 'pages.user.confirmDelete', defaultMessage: '确定删除该用户吗？' })}
-            onConfirm={() => delRun(record.userId!)}
+            onConfirm={() => handleDelete(record)}
           >
             <a style={{ color: '#ff4d4f' }}>
               {intl.formatMessage({ id: 'pages.user.delete', defaultMessage: '删除' })}
@@ -243,10 +194,10 @@ const UserList: React.FC = () => {
               labelWidth: 120,
             }}
             toolBarRender={() => [
-              access.hasPermission('system:user:add') && (
+              access.hasPermission(SYSTEM.USER.ADD) && (
                 <UserForm key="create" onOk={() => actionRef.current?.reload?.()} />
               ),
-              access.hasPermission('system:user:export') && (
+              access.hasPermission(SYSTEM.USER.EXPORT) && (
                 <ExportButton
                   key="export"
                   buttonText={intl.formatMessage({ id: 'pages.user.export', defaultMessage: '导出' })}
@@ -261,7 +212,7 @@ const UserList: React.FC = () => {
                   }}
                 />
               ),
-              access.hasPermission('system:user:import') && (
+              access.hasPermission(SYSTEM.USER.IMPORT) && (
                 <ImportButton
                   key="import"
                   buttonText={intl.formatMessage({ id: 'pages.user.import', defaultMessage: '导入' })}
@@ -291,11 +242,7 @@ const UserList: React.FC = () => {
               };
             }}
             columns={columns}
-            rowSelection={{
-              onChange: (_, selectedRows) => {
-                setSelectedRows(selectedRows);
-              },
-            }}
+            rowSelection={rowSelection}
             pagination={{
               defaultPageSize: 10,
               showSizeChanger: true,
@@ -304,12 +251,12 @@ const UserList: React.FC = () => {
           />
         </Col>
       </Row>
-      {selectedRowsState?.length > 0 && (
+      {selectedRows?.length > 0 && (
         <FooterToolbar>
           <Button
             danger
-            loading={delBatchLoading}
-            onClick={() => handleBatchRemove(selectedRowsState)}
+            loading={deleteBatchLoading}
+            onClick={handleBatchDelete}
           >
             {intl.formatMessage({ id: 'pages.user.batchDelete', defaultMessage: '批量删除' })}
           </Button>

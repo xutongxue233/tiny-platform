@@ -1,31 +1,17 @@
 import { Select, SelectProps } from 'antd';
-import React, { useEffect, useState } from 'react';
-import { getDictItemsByCode } from '@/services/ant-design-pro/dict';
+import React from 'react';
+import { useDict } from '@/hooks/useDict';
 
 interface DictSelectProps extends Omit<SelectProps, 'options'> {
   dictCode: string;
 }
 
+/**
+ * 字典选择器组件
+ * 使用 useDict hook 自动获取字典数据并缓存
+ */
 const DictSelect: React.FC<DictSelectProps> = ({ dictCode, ...restProps }) => {
-  const [options, setOptions] = useState<{ label: string; value: string }[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!dictCode) return;
-    setLoading(true);
-    getDictItemsByCode(dictCode)
-      .then((items) => {
-        setOptions(
-          items.map((item) => ({
-            label: item.itemLabel || '',
-            value: item.itemValue || '',
-          })),
-        );
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [dictCode]);
+  const { options, loading } = useDict(dictCode);
 
   return <Select loading={loading} options={options} {...restProps} />;
 };

@@ -2,6 +2,7 @@ package com.tiny.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tiny.common.core.page.PageResult;
+import com.tiny.core.config.ConfigProvider;
 import com.tiny.system.dto.SysConfigDTO;
 import com.tiny.system.dto.SysConfigQueryDTO;
 import com.tiny.system.entity.SysConfig;
@@ -12,7 +13,7 @@ import java.util.List;
 /**
  * 系统参数配置服务接口
  */
-public interface SysConfigService extends IService<SysConfig> {
+public interface SysConfigService extends IService<SysConfig>, ConfigProvider {
 
     /**
      * 分页查询参数配置列表

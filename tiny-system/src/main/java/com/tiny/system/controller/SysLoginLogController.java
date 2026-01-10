@@ -4,7 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.tiny.common.annotation.OperationLog;
 import com.tiny.common.annotation.OperationLog.OperationType;
 import com.tiny.core.web.ResponseResult;
-import com.tiny.common.core.model.DeleteDTO;
+import com.tiny.common.core.dto.DeleteDTO;
 import com.tiny.common.core.page.PageResult;
 import com.tiny.system.dto.SysLoginLogQueryDTO;
 import com.tiny.system.service.SysLoginLogService;

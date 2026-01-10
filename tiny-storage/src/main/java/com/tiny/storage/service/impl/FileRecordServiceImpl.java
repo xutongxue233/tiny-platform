@@ -19,7 +19,7 @@ import com.tiny.storage.service.StorageConfigService;
 import com.tiny.storage.service.storage.StorageService;
 import com.tiny.storage.vo.FileRecordVO;
 import com.tiny.storage.vo.FileUploadVO;
-import com.tiny.system.service.SysConfigService;
+import com.tiny.core.config.ConfigProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,7 +41,7 @@ public class FileRecordServiceImpl implements FileRecordService {
     private final FileRecordMapper fileRecordMapper;
     private final StorageConfigService storageConfigService;
     private final StorageFactory storageFactory;
-    private final SysConfigService configService;
+    private final ConfigProvider configProvider;
 
     @Override
     public PageResult<FileRecordVO> page(FileRecordQueryDTO queryDTO) {
@@ -172,7 +172,7 @@ public class FileRecordServiceImpl implements FileRecordService {
      * 校验文件大小
      */
     private void validateFileSize(long fileSize) {
-        Integer maxSizeMB = configService.getConfigInteger("sys.upload.maxSize");
+        Integer maxSizeMB = configProvider.getConfigInteger("sys.upload.maxSize");
         int maxSize = (maxSizeMB != null ? maxSizeMB : 10);
         long maxSizeBytes = (long) maxSize * 1024 * 1024;
         if (fileSize > maxSizeBytes) {

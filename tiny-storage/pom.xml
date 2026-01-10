@@ -30,12 +30,6 @@
             <artifactId>tiny-security</artifactId>
         </dependency>
 
-        <!-- Tiny System (用于获取系统配置) -->
-        <dependency>
-            <groupId>com.tiny</groupId>
-            <artifactId>tiny-system</artifactId>
-        </dependency>
-
         <!-- Spring Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
